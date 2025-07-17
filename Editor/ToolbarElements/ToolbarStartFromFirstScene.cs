@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityToolbarExtender;
 
 [Serializable]
@@ -39,7 +37,7 @@ internal class ToolbarStartFromFirstScene : BaseToolbarElement {
 			EditorApplication.isPlaying = !EditorApplication.isPlaying;
 		}
 	}
-	
+
 	private const string LastActiveSceneToolbar = "LastActiveSceneToolbar";
 	private static void LogPlayModeState(PlayModeStateChange state)
 	{

@@ -1,36 +1,35 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CustomToolbar.Editor.Settings;
+using CustomToolbar.Editor.ToolbarElements;
 using UnityEditor;
 
-namespace UnityToolbarExtender
+namespace CustomToolbar.Editor.Core
 {
-    [InitializeOnLoad]
-    public static class CustomToolbarInitializer
-    {
-        static CustomToolbarInitializer()
-        {
-#if UNITY_2020_3_OR_NEWER
-            CustomToolbarSetting setting = ScriptableSingleton<CustomToolbarSetting>.instance;
-#else
-            CustomToolbarSetting setting = CustomToolbarSetting.GetOrCreateSetting();
-#endif
+      [InitializeOnLoad]
+      public static class CustomToolbarInitializer
+      {
+            static CustomToolbarInitializer()
+            {
+                  CustomToolbarSetting setting = ScriptableSingleton<CustomToolbarSetting>.instance;
 
-            setting.elements.ForEach(element => element.Init());
+                  setting.ToolbarElements.ForEach(static element => element.Init());
 
-            List<BaseToolbarElement> leftTools = setting.elements.TakeWhile(element => !(element is ToolbarSides)).ToList();
-            List<BaseToolbarElement> rightTools = setting.elements.Except(leftTools).ToList();
-            IEnumerable<Action> leftToolsDrawActions = leftTools.Select(TakeDrawAction);
-            IEnumerable<Action> rightToolsDrawActions = rightTools.Select(TakeDrawAction);
+                  List<BaseToolbarElement> leftTools = setting.ToolbarElements.TakeWhile(static element => element is not ToolbarSides).ToList();
+                  List<BaseToolbarElement> rightTools = setting.ToolbarElements.Except(leftTools).ToList();
+                  IEnumerable<Action> leftToolsDrawActions = leftTools.Select(TakeDrawAction);
+                  IEnumerable<Action> rightToolsDrawActions = rightTools.Select(TakeDrawAction);
 
-            ToolbarExtender.LeftToolbarGUI.AddRange(leftToolsDrawActions);
-            ToolbarExtender.RightToolbarGUI.AddRange(rightToolsDrawActions);
-        }
+                  ToolbarExtender.LeftToolbarGUI.AddRange(leftToolsDrawActions);
+                  ToolbarExtender.RightToolbarGUI.AddRange(rightToolsDrawActions);
+            }
 
-        private static Action TakeDrawAction(BaseToolbarElement element)
-        {
-            Action action = element.DrawInToolbar;
-            return action;
-        }
-    }
+            private static Action TakeDrawAction(BaseToolbarElement element)
+            {
+                  Action action = element.DrawInToolbar;
+
+                  return action;
+            }
+      }
 }

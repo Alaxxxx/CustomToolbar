@@ -1,22 +1,20 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace UnityToolbarExtender
+namespace CustomToolbar.Editor.Core
 {
-    static class ToolbarStyles
-    {
-        public static readonly GUIStyle commandButtonStyle;
+      internal static class ToolbarStyles
+      {
+            public readonly static GUIStyle commandButtonStyle;
 
-        static ToolbarStyles()
-        {
-            commandButtonStyle = new GUIStyle("Command")
+            static ToolbarStyles()
             {
-                fontSize = 16,
-                alignment = TextAnchor.MiddleCenter,
-                imagePosition = ImagePosition.ImageAbove,
-                fontStyle = FontStyle.Bold
-            };
-        }
-    }
+                  commandButtonStyle = new GUIStyle("Command")
+                  {
+                              fontSize = 16,
+                              alignment = TextAnchor.MiddleCenter,
+                              imagePosition = ImagePosition.ImageAbove,
+                              fontStyle = FontStyle.Bold
+                  };
+            }
+      }
 }

@@ -4,189 +4,154 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-namespace UnityToolbarExtender
+namespace CustomToolbar.Editor.Core
 {
-	[InitializeOnLoad]
-	public static class ToolbarExtender
-	{
-		private static int m_toolCount;
-		private static GUIStyle m_commandStyle = null;
+      [InitializeOnLoad]
+      public static class ToolbarExtender
+      {
+            private static int mToolCount;
+            private static GUIStyle mCommandStyle;
 
-		public static readonly List<Action> LeftToolbarGUI = new List<Action>();
-		public static readonly List<Action> RightToolbarGUI = new List<Action>();
+            public readonly static List<Action> LeftToolbarGUI = new();
+            public readonly static List<Action> RightToolbarGUI = new();
 
-		static ToolbarExtender()
-		{
-			EditorApplication.update += Init;
-			EditorApplication.playModeStateChanged += OnChangePlayMode;
-		}
+            static ToolbarExtender()
+            {
+                  EditorApplication.update += Init;
+                  EditorApplication.playModeStateChanged += OnChangePlayMode;
+            }
 
-		private static void OnChangePlayMode(PlayModeStateChange state) 
-		{
-			if(state == PlayModeStateChange.EnteredPlayMode)
-				InitElements();
-		}
+            private static void OnChangePlayMode(PlayModeStateChange state)
+            {
+                  if (state == PlayModeStateChange.EnteredPlayMode)
+                  {
+                        InitElements();
+                  }
+            }
 
-		private static void Init() 
-		{
-			EditorApplication.update -= Init;
-			InitElements();
-		}
+            private static void Init()
+            {
+                  EditorApplication.update -= Init;
+                  InitElements();
+            }
 
-		public static void InitElements() 
-		{
-			Type toolbarType = typeof(Editor).Assembly.GetType("UnityEditor.Toolbar");
+            private static void InitElements()
+            {
+                  Type toolbarType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.Toolbar");
 
-#if UNITY_2019_1_OR_NEWER
-			string fieldName = "k_ToolCount";
-#else
-			string fieldName = "s_ShownToolIcons";
-#endif
+                  const string fieldName = "k_ToolCount";
 
-			FieldInfo toolIcons = toolbarType.GetField(fieldName,
-				BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+                  FieldInfo toolIcons = toolbarType.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
 
-#if UNITY_2019_3_OR_NEWER
-			m_toolCount = toolIcons != null ? ((int) toolIcons.GetValue(null)) : 8;
-#elif UNITY_2019_1_OR_NEWER
-			m_toolCount = toolIcons != null ? ((int) toolIcons.GetValue(null)) : 7;
-#elif UNITY_2018_1_OR_NEWER
-			m_toolCount = toolIcons != null ? ((Array) toolIcons.GetValue(null)).Length : 6;
-#else
-			m_toolCount = toolIcons != null ? ((Array) toolIcons.GetValue(null)).Length : 5;
-#endif
+                  mToolCount = toolIcons != null ? ((int)toolIcons.GetValue(null)) : 8;
 
-			ToolbarCallback.OnToolbarGUI -= OnGUI;
-			ToolbarCallback.OnToolbarGUI += OnGUI;
-			ToolbarCallback.OnToolbarGUILeft -= GUILeft;
-			ToolbarCallback.OnToolbarGUILeft += GUILeft;
-			ToolbarCallback.OnToolbarGUIRight -= GUIRight;
-			ToolbarCallback.OnToolbarGUIRight += GUIRight;
-		}
+                  ToolbarCallback.OnToolbarGUI -= OnGUI;
+                  ToolbarCallback.OnToolbarGUI += OnGUI;
+                  ToolbarCallback.OnToolbarGUILeft -= GUILeft;
+                  ToolbarCallback.OnToolbarGUILeft += GUILeft;
+                  ToolbarCallback.OnToolbarGUIRight -= GUIRight;
+                  ToolbarCallback.OnToolbarGUIRight += GUIRight;
+            }
 
-#if UNITY_2019_3_OR_NEWER
-		public const float space = 8;
-#else
-		public const float space = 10;
-#endif
-		public const float largeSpace = 20;
-		public const float buttonWidth = 32;
-		public const float dropdownWidth = 80;
-#if UNITY_2019_1_OR_NEWER
-		public const float playPauseStopWidth = 140;
-#else
-		public const float playPauseStopWidth = 100;
-#endif
+            public const float Space = 8;
+            public const float LargeSpace = 20;
+            public const float ButtonWidth = 32;
+            public const float DropdownWidth = 80;
+            public const float PlayPauseStopWidth = 140;
 
-		public static void OnGUI()
-		{
-			// Create two containers, left and right
-			// Screen is whole toolbar
+            public static void OnGUI()
+            {
+                  mCommandStyle ??= new GUIStyle("CommandLeft");
 
-			if (m_commandStyle == null)
-			{
-				m_commandStyle = new GUIStyle("CommandLeft");
-			}
+                  float screenWidth = EditorGUIUtility.currentViewWidth;
 
-			var screenWidth = EditorGUIUtility.currentViewWidth;
+                  float playButtonsPosition = Mathf.RoundToInt((screenWidth - PlayPauseStopWidth) / 2);
 
-			// Following calculations match code reflected from Toolbar.OldOnGUI()
-			float playButtonsPosition = Mathf.RoundToInt ((screenWidth - playPauseStopWidth) / 2);
+                  var leftRect = new Rect(0, 0, screenWidth, Screen.height);
+                  leftRect.xMin += Space; // Spacing left
+                  leftRect.xMin += ButtonWidth * mToolCount; // Tool buttons
+                  leftRect.xMin += Space; // Spacing between tools and pivot
+                  leftRect.xMin += 64 * 2; // Pivot buttons
+                  leftRect.xMax = playButtonsPosition;
 
-			Rect leftRect = new Rect(0, 0, screenWidth, Screen.height);
-			leftRect.xMin += space; // Spacing left
-			leftRect.xMin += buttonWidth * m_toolCount; // Tool buttons
-#if UNITY_2019_3_OR_NEWER
-			leftRect.xMin += space; // Spacing between tools and pivot
-#else
-			leftRect.xMin += largeSpace; // Spacing between tools and pivot
-#endif
-			leftRect.xMin += 64 * 2; // Pivot buttons
-			leftRect.xMax = playButtonsPosition;
+                  var rightRect = new Rect(0, 0, screenWidth, Screen.height);
+                  rightRect.xMin = playButtonsPosition;
+                  rightRect.xMin += mCommandStyle.fixedWidth * 3; // Play buttons
+                  rightRect.xMax = screenWidth;
+                  rightRect.xMax -= Space; // Spacing right
+                  rightRect.xMax -= DropdownWidth; // Layout
+                  rightRect.xMax -= Space; // Spacing between layout and layers
+                  rightRect.xMax -= DropdownWidth; // Layers
+                  rightRect.xMax -= Space; // Spacing between layers and account
+                  rightRect.xMax -= DropdownWidth; // Account
+                  rightRect.xMax -= Space; // Spacing between account and cloud
+                  rightRect.xMax -= ButtonWidth; // Cloud
+                  rightRect.xMax -= Space; // Spacing between cloud and collab
+                  rightRect.xMax -= 78; // Colab
 
-			Rect rightRect = new Rect(0, 0, screenWidth, Screen.height);
-			rightRect.xMin = playButtonsPosition;
-			rightRect.xMin += m_commandStyle.fixedWidth * 3; // Play buttons
-			rightRect.xMax = screenWidth;
-			rightRect.xMax -= space; // Spacing right
-			rightRect.xMax -= dropdownWidth; // Layout
-			rightRect.xMax -= space; // Spacing between layout and layers
-			rightRect.xMax -= dropdownWidth; // Layers
-#if UNITY_2019_3_OR_NEWER
-			rightRect.xMax -= space; // Spacing between layers and account
-#else
-			rightRect.xMax -= largeSpace; // Spacing between layers and account
-#endif
-			rightRect.xMax -= dropdownWidth; // Account
-			rightRect.xMax -= space; // Spacing between account and cloud
-			rightRect.xMax -= buttonWidth; // Cloud
-			rightRect.xMax -= space; // Spacing between cloud and collab
-			rightRect.xMax -= 78; // Colab
+                  // Add spacing around existing controls
+                  leftRect.xMin += Space;
+                  leftRect.xMax -= Space;
+                  rightRect.xMin += Space;
+                  rightRect.xMax -= Space;
 
-			// Add spacing around existing controls
-			leftRect.xMin += space;
-			leftRect.xMax -= space;
-			rightRect.xMin += space;
-			rightRect.xMax -= space;
+                  // Add top and bottom margins
+                  leftRect.y = 4;
+                  leftRect.height = 22;
+                  rightRect.y = 4;
+                  rightRect.height = 22;
 
-			// Add top and bottom margins
-#if UNITY_2019_3_OR_NEWER
-			leftRect.y = 4;
-			leftRect.height = 22;
-			rightRect.y = 4;
-			rightRect.height = 22;
-#else
-			leftRect.y = 5;
-			leftRect.height = 24;
-			rightRect.y = 5;
-			rightRect.height = 24;
-#endif
+                  if (leftRect.width > 0)
+                  {
+                        GUILayout.BeginArea(leftRect);
+                        GUILayout.BeginHorizontal();
 
-			if (leftRect.width > 0)
-			{
-				GUILayout.BeginArea(leftRect);
-				GUILayout.BeginHorizontal();
-				foreach (var handler in LeftToolbarGUI)
-				{
-					handler();
-				}
+                        foreach (Action handler in LeftToolbarGUI)
+                        {
+                              handler();
+                        }
 
-				GUILayout.EndHorizontal();
-				GUILayout.EndArea();
-			}
+                        GUILayout.EndHorizontal();
+                        GUILayout.EndArea();
+                  }
 
-			if (rightRect.width > 0)
-			{
-				GUILayout.BeginArea(rightRect);
-				GUILayout.BeginHorizontal();
-				foreach (var handler in RightToolbarGUI)
-				{
-					handler();
-				}
+                  if (rightRect.width > 0)
+                  {
+                        GUILayout.BeginArea(rightRect);
+                        GUILayout.BeginHorizontal();
 
-				GUILayout.EndHorizontal();
-				GUILayout.EndArea();
-			}
-		}
+                        foreach (Action handler in RightToolbarGUI)
+                        {
+                              handler();
+                        }
 
-		private static void GUILeft() 
-		{
-			GUILayout.BeginHorizontal();
-			foreach (var handler in LeftToolbarGUI)
-			{
-				handler();
-			}
-			GUILayout.EndHorizontal();
-		}
+                        GUILayout.EndHorizontal();
+                        GUILayout.EndArea();
+                  }
+            }
 
-		private static void GUIRight() 
-		{
-			GUILayout.BeginHorizontal();
-			foreach (var handler in RightToolbarGUI)
-			{
-				handler();
-			}
-			GUILayout.EndHorizontal();
-		}
-	}
+            private static void GUILeft()
+            {
+                  GUILayout.BeginHorizontal();
+
+                  foreach (Action handler in LeftToolbarGUI)
+                  {
+                        handler();
+                  }
+
+                  GUILayout.EndHorizontal();
+            }
+
+            private static void GUIRight()
+            {
+                  GUILayout.BeginHorizontal();
+
+                  foreach (Action handler in RightToolbarGUI)
+                  {
+                        handler();
+                  }
+
+                  GUILayout.EndHorizontal();
+            }
+      }
 }

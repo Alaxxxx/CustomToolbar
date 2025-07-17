@@ -1,28 +1,35 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+using CustomToolbar.Editor.Core;
+using CustomToolbar.Editor.Utils;
 using UnityEditor;
+using UnityEngine;
 
-[Serializable]
-internal class ToolbarReserializeSelected : BaseToolbarElement {
-	private static GUIContent reserializeSelectedBtn;
+namespace CustomToolbar.Editor.ToolbarElements
+{
+      [Serializable]
+      internal class ToolbarReserializeSelected : BaseToolbarElement
+      {
+            private static GUIContent reserializeSelectedBtn;
 
-	public override string NameInList => "[Button] Reserialize selected";
-	public override int SortingGroup => 5;
+            public override string NameInList => "[Button] Reserialize selected";
+            public override int SortingGroup => 5;
 
-	public override void Init() {
-		reserializeSelectedBtn = EditorGUIUtility.IconContent("Refresh");
-		reserializeSelectedBtn.tooltip = "Reserialize Selected Assets";
-	}
+            public override void Init()
+            {
+                  reserializeSelectedBtn = EditorGUIUtility.IconContent("Refresh");
+                  reserializeSelectedBtn.tooltip = "Reserialize Selected Assets";
+            }
 
-	protected override void OnDrawInList(Rect position) {
+            protected override void OnDrawInList(Rect position)
+            {
+            }
 
-	}
-
-	protected override void OnDrawInToolbar() {
-		if (GUILayout.Button(reserializeSelectedBtn, UnityToolbarExtender.ToolbarStyles.commandButtonStyle)) {
-			UnityToolbarExtender.ForceReserializeAssetsUtils.ForceReserializeSelectedAssets();
-		}
-	}
+            protected override void OnDrawInToolbar()
+            {
+                  if (GUILayout.Button(reserializeSelectedBtn, ToolbarStyles.commandButtonStyle))
+                  {
+                        ForceReserializeAssetsUtils.ForceReserializeSelectedAssets();
+                  }
+            }
+      }
 }

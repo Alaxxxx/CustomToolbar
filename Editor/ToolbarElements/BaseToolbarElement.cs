@@ -1,75 +1,79 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityToolbarExtender;
 using UnityEditor;
+using UnityEngine;
 
-[Serializable]
-abstract internal class BaseToolbarElement : IComparable<BaseToolbarElement> {
-	static protected string GetPackageRootPath {
-		get {
-			return "Packages/com.smkplus.custom-toolbar";
-		}
-	}
+namespace CustomToolbar.Editor.ToolbarElements
+{
+      [Serializable]
+      internal abstract class BaseToolbarElement : IComparable<BaseToolbarElement>
+      {
+            protected static string GetPackageRootPath => "Packages/com.smkplus.custom-toolbar";
 
-	abstract public string NameInList { get; }
-	virtual public int SortingGroup { get; }
+            public abstract string NameInList { get; }
+            public virtual int SortingGroup { get; }
 
-	[SerializeField] protected bool IsEnabled = true;
-	[SerializeField] protected float WidthInToolbar;
+            [SerializeField] protected bool isEnabled = true;
+            [SerializeField] protected float widthInToolbar;
 
-	protected const float FieldSizeSpace = 10.0f;
-	protected const float FieldSizeSingleChar = 7.0f;
-	protected const float FieldSizeWidth = 50.0f;
+            protected const float FieldSizeSpace = 10.0f;
+            protected const float FieldSizeSingleChar = 7.0f;
+            protected const float FieldSizeWidth = 50.0f;
 
-	public BaseToolbarElement() : this(100.0f) {
-		//Init();
-	}
+            public BaseToolbarElement() : this(100.0f)
+            {
+                  // Init();
+            }
 
-	public BaseToolbarElement(float widthInToolbar) {
-		WidthInToolbar = widthInToolbar;
-	}
+            public BaseToolbarElement(float widthInToolbar)
+            {
+                  this.widthInToolbar = widthInToolbar;
+            }
 
-	public void DrawInList(Rect position) {
-		position.y += 2;
-		position.height -= 4;
+            public void DrawInList(Rect position)
+            {
+                  position.y += 2;
+                  position.height -= 4;
 
-		position.x += FieldSizeSpace;
-		position.width = 15.0f;
-		IsEnabled = EditorGUI.Toggle(position, IsEnabled);
+                  position.x += FieldSizeSpace;
+                  position.width = 15.0f;
+                  isEnabled = EditorGUI.Toggle(position, isEnabled);
 
-		position.x += position.width + FieldSizeSpace;
-		position.width = 200.0f;
-		EditorGUI.LabelField(position, NameInList);
+                  position.x += position.width + FieldSizeSpace;
+                  position.width = 200.0f;
+                  EditorGUI.LabelField(position, NameInList);
 
-		position.x += position.width + FieldSizeSpace;
-		position.width = FieldSizeSingleChar * 4;
-		EditorGUI.LabelField(position, "Size");
+                  position.x += position.width + FieldSizeSpace;
+                  position.width = FieldSizeSingleChar * 4;
+                  EditorGUI.LabelField(position, "Size");
 
-		position.x += position.width + FieldSizeSpace;
-		position.width = FieldSizeWidth;
-		WidthInToolbar = EditorGUI.IntField(position, (int)WidthInToolbar);
+                  position.x += position.width + FieldSizeSpace;
+                  position.width = FieldSizeWidth;
+                  widthInToolbar = EditorGUI.IntField(position, (int)widthInToolbar);
 
-		position.x += position.width + FieldSizeSpace;
+                  position.x += position.width + FieldSizeSpace;
 
-		EditorGUI.BeginDisabledGroup(!IsEnabled);
-		OnDrawInList(position);
-		EditorGUI.EndDisabledGroup();
-	}
+                  EditorGUI.BeginDisabledGroup(!isEnabled);
+                  OnDrawInList(position);
+                  EditorGUI.EndDisabledGroup();
+            }
 
-	public void DrawInToolbar() {
-		if(IsEnabled)
-			OnDrawInToolbar();
-	}
+            public void DrawInToolbar()
+            {
+                  if (isEnabled)
+                        OnDrawInToolbar();
+            }
 
-	virtual public void Init() { }
+            public virtual void Init()
+            {
+            }
 
-	abstract protected void OnDrawInList(Rect position);
-	abstract protected void OnDrawInToolbar();
+            protected abstract void OnDrawInList(Rect position);
 
-    public int CompareTo(BaseToolbarElement other)
-    {
-		return SortingGroup.CompareTo(other.SortingGroup);
-    }
+            protected abstract void OnDrawInToolbar();
+
+            public int CompareTo(BaseToolbarElement other)
+            {
+                  return SortingGroup.CompareTo(other.SortingGroup);
+            }
+      }
 }

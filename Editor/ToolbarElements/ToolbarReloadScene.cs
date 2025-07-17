@@ -9,29 +9,32 @@ namespace CustomToolbar.Editor.ToolbarElements
       [Serializable]
       internal class ToolbarReloadScene : BaseToolbarElement
       {
-            private static GUIContent reloadSceneBtn;
+            private static GUIContent buttonContent;
 
-            public override string NameInList => "[Button] Reload scene";
-            public override int SortingGroup => 3;
+            public override string Name => "Reload Scene";
+            public override string Tooltip => "Reloads the currently active scene (only in Play Mode).";
 
-            public override void Init()
+            public override void OnInit()
             {
-                  reloadSceneBtn = new GUIContent(
-                              (Texture2D)AssetDatabase.LoadAssetAtPath($"{GetPackageRootPath}/Editor/CustomToolbar/Icons/LookDevResetEnv@2x.png", typeof(Texture2D)),
-                              "Reload scene");
+                  var icon = EditorGUIUtility.IconContent("d_Refresh").image;
+                  buttonContent = new GUIContent(icon, this.Tooltip);
+
+                  this.Enabled = false;
             }
 
-            protected override void OnDrawInList(Rect position)
+            public override void OnPlayModeStateChanged(PlayModeStateChange state)
             {
+                  this.Enabled = EditorApplication.isPlaying;
             }
 
-            protected override void OnDrawInToolbar()
+            public override void OnDrawInToolbar()
             {
-                  EditorGUIUtility.SetIconSize(new Vector2(17, 17));
-
-                  if (GUILayout.Button(reloadSceneBtn, ToolbarStyles.commandButtonStyle) && EditorApplication.isPlaying)
+                  using (new EditorGUI.DisabledScope(!this.Enabled))
                   {
-                        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                        if (GUILayout.Button(buttonContent, ToolbarStyles.CommandButtonStyle, GUILayout.Width(this.Width)))
+                        {
+                              SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                        }
                   }
             }
       }

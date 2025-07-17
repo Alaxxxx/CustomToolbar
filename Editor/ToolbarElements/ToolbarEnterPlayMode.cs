@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using CustomToolbar.Editor.Core;
 using UnityEditor;
 using UnityEngine;
 
@@ -7,42 +10,56 @@ namespace CustomToolbar.Editor.ToolbarElements
       [Serializable]
       internal class ToolbarEnterPlayMode : BaseToolbarElement
       {
-            int selectedEnterPlayMode;
-            string[] enterPlayModeOption;
+            private static string[] playModeOptionsDisplay;
+            private int selectedOptionIndex;
 
-            public override string NameInList => "[Dropdown] Enter play mode option";
-            public override int SortingGroup => 2;
+            [NonSerialized] private GUIContent buttonContent;
 
-            public override void Init()
+            public override string Name => "Play Mode Options";
+            public override string Tooltip => "Configure 'Enter Play Mode' settings for faster iteration (Domain/Scene Reload).";
+
+            public override void OnInit()
             {
-                  enterPlayModeOption = new[]
+                  this.Width = 120;
+
+                  if (playModeOptionsDisplay == null)
                   {
-                              "Disabled",
-                              "Reload All",
-                              "Reload Scene",
-                              "Reload Domain",
-                              "FastMode",
-                  };
-            }
-
-            protected override void OnDrawInList(Rect position)
-            {
-            }
-
-            protected override void OnDrawInToolbar()
-            {
-                  if (EditorSettings.enterPlayModeOptionsEnabled)
-                  {
-                        EnterPlayModeOptions option = EditorSettings.enterPlayModeOptions;
-                        selectedEnterPlayMode = (int)option + 1;
+                        List<string> enumOptions = Enum.GetNames(typeof(EnterPlayModeOptions)).ToList();
+                        enumOptions.Insert(0, "Default");
+                        playModeOptionsDisplay = enumOptions.ToArray();
                   }
 
-                  selectedEnterPlayMode = EditorGUILayout.Popup(selectedEnterPlayMode, enterPlayModeOption, GUILayout.Width(widthInToolbar));
+                  selectedOptionIndex = EditorSettings.enterPlayModeOptionsEnabled ? (int)EditorSettings.enterPlayModeOptions + 1 : 0;
+                  buttonContent = new GUIContent("", this.Tooltip);
+            }
 
-                  if (GUI.changed && 0 <= selectedEnterPlayMode && selectedEnterPlayMode < enterPlayModeOption.Length)
+            public override void OnDrawInToolbar()
+            {
+                  buttonContent.text = playModeOptionsDisplay[selectedOptionIndex];
+
+                  if (EditorGUILayout.DropdownButton(buttonContent, FocusType.Keyboard, ToolbarStyles.CommandPopupStyle, GUILayout.Width(this.Width)))
                   {
-                        EditorSettings.enterPlayModeOptionsEnabled = selectedEnterPlayMode != 0;
-                        EditorSettings.enterPlayModeOptions = (EnterPlayModeOptions)(selectedEnterPlayMode - 1);
+                        var menu = new GenericMenu();
+
+                        for (int i = 0; i < playModeOptionsDisplay.Length; i++)
+                        {
+                              int index = i;
+
+                              menu.AddItem(new GUIContent(playModeOptionsDisplay[index]), selectedOptionIndex == index, () =>
+                              {
+                                    selectedOptionIndex = index;
+
+                                    bool isEnabled = selectedOptionIndex != 0;
+                                    EditorSettings.enterPlayModeOptionsEnabled = isEnabled;
+
+                                    if (isEnabled)
+                                    {
+                                          EditorSettings.enterPlayModeOptions = (EnterPlayModeOptions)(selectedOptionIndex - 1);
+                                    }
+                              });
+                        }
+
+                        menu.ShowAsContext();
                   }
             }
       }

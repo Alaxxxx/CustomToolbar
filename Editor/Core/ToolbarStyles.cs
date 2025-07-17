@@ -4,16 +4,28 @@ namespace CustomToolbar.Editor.Core
 {
       internal static class ToolbarStyles
       {
-            public readonly static GUIStyle commandButtonStyle;
+            public readonly static GUIStyle CommandButtonStyle;
+            public readonly static GUIStyle CommandPopupStyle;
+            public readonly static GUIStyle ToolbarHorizontalGroupStyle;
 
             static ToolbarStyles()
             {
-                  commandButtonStyle = new GUIStyle("Command")
+                  CommandButtonStyle = new GUIStyle("ToolbarButton")
                   {
-                              fontSize = 16,
                               alignment = TextAnchor.MiddleCenter,
-                              imagePosition = ImagePosition.ImageAbove,
-                              fontStyle = FontStyle.Bold
+                              margin = new RectOffset(2, 2, 2, 2),
+                  };
+
+                  CommandPopupStyle = new GUIStyle("ToolbarPopup")
+                  {
+                              alignment = TextAnchor.MiddleCenter,
+                              margin = new RectOffset(2, 2, 2, 2),
+                  };
+
+                  ToolbarHorizontalGroupStyle = new GUIStyle
+                  {
+                              alignment = TextAnchor.MiddleCenter,
+                              stretchHeight = true,
                   };
             }
       }

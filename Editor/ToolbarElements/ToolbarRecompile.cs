@@ -9,27 +9,26 @@ namespace CustomToolbar.Editor.ToolbarElements
       [Serializable]
       internal class ToolbarRecompile : BaseToolbarElement
       {
-            private static GUIContent recompileBtn;
+            private static GUIContent buttonContent;
 
-            public override string NameInList => "[Button] Recompile";
-            public override int SortingGroup => 5;
+            public override string Name => "Recompile Scripts";
+            public override string Tooltip => "Request a manual script compilation.";
 
-            public override void Init()
+            public override void OnInit()
             {
-                  recompileBtn = EditorGUIUtility.IconContent("WaitSpin05");
-                  recompileBtn.tooltip = "Recompile";
+                  buttonContent = EditorGUIUtility.IconContent("d_BuildSettings.Metro", "Recompile Scripts");
             }
 
-            protected override void OnDrawInList(Rect position)
+            public override void OnDrawInToolbar()
             {
-            }
+                  this.Enabled = !EditorApplication.isCompiling && !EditorApplication.isPlayingOrWillChangePlaymode;
 
-            protected override void OnDrawInToolbar()
-            {
-                  if (GUILayout.Button(recompileBtn, ToolbarStyles.commandButtonStyle))
+                  using (new EditorGUI.DisabledScope(!this.Enabled))
                   {
-                        CompilationPipeline.RequestScriptCompilation();
-                        Debug.Log("Recompile");
+                        if (GUILayout.Button(buttonContent, ToolbarStyles.CommandButtonStyle, GUILayout.Width(this.Width)))
+                        {
+                              CompilationPipeline.RequestScriptCompilation();
+                        }
                   }
             }
       }

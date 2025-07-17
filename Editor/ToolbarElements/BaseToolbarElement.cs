@@ -1,79 +1,114 @@
 ﻿using System;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
 namespace CustomToolbar.Editor.ToolbarElements
 {
+      /// <summary>
+      /// The base contract for any element that can be displayed on the Custom Toolbar.
+      /// To create a new element, inherit from this class.
+      /// </summary>
       [Serializable]
       internal abstract class BaseToolbarElement : IComparable<BaseToolbarElement>
       {
-            protected static string GetPackageRootPath => "Packages/com.smkplus.custom-toolbar";
+            [NonSerialized]
+            private static string rootPath;
 
-            public abstract string NameInList { get; }
-            public virtual int SortingGroup { get; }
+            /// <summary>
+            /// The display name of the element in the settings UI.
+            /// </summary>
+            public abstract string Name { get; }
 
-            [SerializeField] protected bool isEnabled = true;
-            [SerializeField] protected float widthInToolbar;
+            /// <summary>
+            /// The tooltip displayed when hovering over the element in the toolbar.
+            /// </summary>
+            public virtual string Tooltip => string.Empty;
 
-            protected const float FieldSizeSpace = 10.0f;
-            protected const float FieldSizeSingleChar = 7.0f;
-            protected const float FieldSizeWidth = 50.0f;
+            /// <summary>
+            /// Gets or sets a value indicating whether this element is drawn in the toolbar.
+            /// </summary>
+            [field: SerializeField]
+            public bool Visible { get; set; } = true;
 
-            public BaseToolbarElement() : this(100.0f)
-            {
-                  // Init();
-            }
+            /// <summary>
+            /// Gets or sets a value indicating whether this element is interactable (e.g., clickable).
+            /// If false, the element will appear greyed out.
+            /// </summary>
+            [field: SerializeField]
+            public bool Enabled { get; set; } = true;
 
-            public BaseToolbarElement(float widthInToolbar)
-            {
-                  this.widthInToolbar = widthInToolbar;
-            }
+            /// <summary>
+            /// Gets or sets the width of the element in the toolbar, in pixels.
+            /// </summary>
+            [field: SerializeField]
+            public float Width { get; set; } = 32;
 
-            public void DrawInList(Rect position)
-            {
-                  position.y += 2;
-                  position.height -= 4;
+#region EventLoop
 
-                  position.x += FieldSizeSpace;
-                  position.width = 15.0f;
-                  isEnabled = EditorGUI.Toggle(position, isEnabled);
-
-                  position.x += position.width + FieldSizeSpace;
-                  position.width = 200.0f;
-                  EditorGUI.LabelField(position, NameInList);
-
-                  position.x += position.width + FieldSizeSpace;
-                  position.width = FieldSizeSingleChar * 4;
-                  EditorGUI.LabelField(position, "Size");
-
-                  position.x += position.width + FieldSizeSpace;
-                  position.width = FieldSizeWidth;
-                  widthInToolbar = EditorGUI.IntField(position, (int)widthInToolbar);
-
-                  position.x += position.width + FieldSizeSpace;
-
-                  EditorGUI.BeginDisabledGroup(!isEnabled);
-                  OnDrawInList(position);
-                  EditorGUI.EndDisabledGroup();
-            }
-
-            public void DrawInToolbar()
-            {
-                  if (isEnabled)
-                        OnDrawInToolbar();
-            }
-
-            public virtual void Init()
+            /// <summary>
+            /// One-time initialization logic for the element.
+            /// Called once when the editor starts. Use this to load icons or cache styles.
+            /// </summary>
+            public virtual void OnInit()
             {
             }
 
-            protected abstract void OnDrawInList(Rect position);
+            /// <summary>
+            /// Called every time the play mode state changes (e.g., entering or exiting play mode).
+            /// Allows the element to change its behavior dynamically.
+            /// </summary>
+            public virtual void OnPlayModeStateChanged(PlayModeStateChange state)
+            {
+            }
 
-            protected abstract void OnDrawInToolbar();
+            /// <summary>
+            /// Called when the user's selection changes in the editor.
+            /// </summary>
+            public virtual void OnSelectionChanged()
+            {
+            }
+
+#endregion
+
+#region Methods
+
+            /// <summary>
+            /// Defines how the element should be drawn in the main toolbar.
+            /// </summary>
+            public abstract void OnDrawInToolbar();
+
+#endregion
 
             public int CompareTo(BaseToolbarElement other)
             {
-                  return SortingGroup.CompareTo(other.SortingGroup);
+                  return string.Compare(this.Name, other.Name, StringComparison.Ordinal);
+            }
+
+            protected static string GetRootPath()
+            {
+                  if (!string.IsNullOrEmpty(rootPath))
+                  {
+                        return rootPath;
+                  }
+
+                  // Find the path of this script (BaseToolbarElement.cs)
+                  string[] guids = AssetDatabase.FindAssets("t:script BaseToolbarElement");
+
+                  if (guids.Length > 0)
+                  {
+                        string path = AssetDatabase.GUIDToAssetPath(guids[0]);
+
+                        // The root is two levels up from the script's directory (ToolbarElements/Editor/CustomToolbar)
+                        rootPath = Path.GetDirectoryName(Path.GetDirectoryName(path));
+                  }
+                  else
+                  {
+                        // Fallback in case the script cannot be found
+                        rootPath = "Assets/CustomToolbar";
+                  }
+
+                  return rootPath;
             }
       }
 }

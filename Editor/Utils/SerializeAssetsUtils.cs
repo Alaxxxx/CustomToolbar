@@ -3,7 +3,7 @@ using UnityEditor;
 
 namespace CustomToolbar.Editor.Utils
 {
-      public static class ForceReserializeAssetsUtils
+      internal static class SerializeAssetsUtils
       {
             public static void ForceReserializeAllAssets()
             {

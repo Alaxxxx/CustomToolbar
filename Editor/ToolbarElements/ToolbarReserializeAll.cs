@@ -9,26 +9,27 @@ namespace CustomToolbar.Editor.ToolbarElements
       [Serializable]
       internal class ToolbarReserializeAll : BaseToolbarElement
       {
-            private static GUIContent reserializeAllBtn;
+            private static GUIContent buttonContent;
 
-            public override string NameInList => "[Button] Reserialize all";
-            public override int SortingGroup => 5;
+            public override string Name => "Reserialize All Assets";
+            public override string Tooltip => "Forces a re-serialization of all assets in the project. Useful after a Unity upgrade or to fix serialization errors.";
 
-            public override void Init()
+            public override void OnInit()
             {
-                  reserializeAllBtn = EditorGUIUtility.IconContent("P4_Updating");
-                  reserializeAllBtn.tooltip = "Reserialize All Assets";
+                  buttonContent = EditorGUIUtility.IconContent("d_Refresh", this.Tooltip);
             }
 
-            protected override void OnDrawInList(Rect position)
+            public override void OnDrawInToolbar()
             {
-            }
+                  this.Enabled = !EditorApplication.isPlayingOrWillChangePlaymode;
 
-            protected override void OnDrawInToolbar()
-            {
-                  if (GUILayout.Button(reserializeAllBtn, ToolbarStyles.commandButtonStyle))
+                  using (new EditorGUI.DisabledScope(!this.Enabled))
                   {
-                        ForceReserializeAssetsUtils.ForceReserializeAllAssets();
+                        if (GUILayout.Button(buttonContent, ToolbarStyles.CommandButtonStyle, GUILayout.Width(this.Width)))
+                        {
+                              Debug.Log("Starting to force reserialize all assets. This may take a while...");
+                              SerializeAssetsUtils.ForceReserializeAllAssets();
+                        }
                   }
             }
       }

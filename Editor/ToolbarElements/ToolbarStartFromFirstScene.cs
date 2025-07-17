@@ -1,7 +1,7 @@
 ﻿using System;
 using CustomToolbar.Editor.Core;
+using CustomToolbar.Editor.Utils;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -10,56 +10,33 @@ namespace CustomToolbar.Editor.ToolbarElements
       [Serializable]
       internal class ToolbarStartFromFirstScene : BaseToolbarElement
       {
-            private static GUIContent startFromFirstSceneBtn;
+            private static GUIContent buttonContent;
 
-            public override string NameInList => "[Button] Start from first scene";
-            public override int SortingGroup => 3;
+            public override string Name => "Start From First Scene";
+            public override string Tooltip => "Saves changes, starts Play Mode from the first scene in Build Settings, and returns to the original scene on exit.";
 
-            public override void Init()
+            public override void OnInit()
             {
-                  EditorApplication.playModeStateChanged += LogPlayModeState;
+                  Texture icon = EditorGUIUtility.IconContent("d_PlayButton@2x").image;
+                  buttonContent = new GUIContent(icon, this.Tooltip);
 
-                  startFromFirstSceneBtn =
-                              new GUIContent(
-                                          (Texture2D)AssetDatabase.LoadAssetAtPath($"{GetPackageRootPath}/Editor/CustomToolbar/Icons/LookDevSingle1@2x.png",
-                                                      typeof(Texture2D)), "Start from 1 scene");
+                  this.Enabled = !EditorApplication.isPlayingOrWillChangePlaymode &&
+                                 SceneUtility.GetBuildIndexByScenePath(SceneUtility.GetScenePathByBuildIndex(0)) != -1;
             }
 
-            protected override void OnDrawInList(Rect position)
+            public override void OnPlayModeStateChanged(PlayModeStateChange state)
             {
+                  this.Enabled = (state == PlayModeStateChange.EnteredEditMode);
             }
 
-            protected override void OnDrawInToolbar()
+            public override void OnDrawInToolbar()
             {
-                  if (GUILayout.Button(startFromFirstSceneBtn, ToolbarStyles.commandButtonStyle))
+                  using (new EditorGUI.DisabledScope(!this.Enabled))
                   {
-                        if (!EditorApplication.isPlaying)
+                        if (GUILayout.Button(buttonContent, ToolbarStyles.CommandButtonStyle, GUILayout.Width(this.Width)))
                         {
-                              if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-                              {
-                                    EditorApplication.isPlaying = false;
-
-                                    return;
-                              }
-
-                              SessionState.SetString(LastActiveSceneToolbar, EditorSceneManager.GetActiveScene().path);
-                              EditorSceneManager.OpenScene(SceneUtility.GetScenePathByBuildIndex(0));
+                              SceneAssetsUtils.StartPlayModeFromFirstScene();
                         }
-
-                        EditorApplication.isPlaying = !EditorApplication.isPlaying;
-                  }
-            }
-
-            private const string LastActiveSceneToolbar = "LastActiveSceneToolbar";
-
-            private static void LogPlayModeState(PlayModeStateChange state)
-            {
-                  if (state == PlayModeStateChange.EnteredEditMode)
-                  {
-                        if (string.IsNullOrWhiteSpace(SessionState.GetString(LastActiveSceneToolbar, string.Empty)))
-                              return;
-                        EditorSceneManager.OpenScene(SessionState.GetString(LastActiveSceneToolbar, string.Empty));
-                        SessionState.EraseString(LastActiveSceneToolbar);
                   }
             }
       }

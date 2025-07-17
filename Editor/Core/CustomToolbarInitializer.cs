@@ -1,9 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using CustomToolbar.Editor.Settings;
 using CustomToolbar.Editor.ToolbarElements;
+using CustomToolbar.Editor.Utils;
 using UnityEditor;
+using UnityEngine;
 
 namespace CustomToolbar.Editor.Core
 {
@@ -12,24 +12,73 @@ namespace CustomToolbar.Editor.Core
       {
             static CustomToolbarInitializer()
             {
-                  CustomToolbarSetting setting = ScriptableSingleton<CustomToolbarSetting>.instance;
+                  var sceneManagementGroup = new BaseToolbarElement[]
+                  {
+                              new ToolbarSceneSelection(),
+                              new ToolbarStartFromFirstScene(),
+                              new ToolbarReloadScene(),
+                  };
 
-                  setting.ToolbarElements.ForEach(static element => element.Init());
+                  var controlGroup = new BaseToolbarElement[]
+                  {
+                              new ToolbarEnterPlayMode(),
+                              new ToolbarTimeSlider(),
+                              new ToolbarFpsSlider(),
+                  };
 
-                  List<BaseToolbarElement> leftTools = setting.ToolbarElements.TakeWhile(static element => element is not ToolbarSides).ToList();
-                  List<BaseToolbarElement> rightTools = setting.ToolbarElements.Except(leftTools).ToList();
-                  IEnumerable<Action> leftToolsDrawActions = leftTools.Select(TakeDrawAction);
-                  IEnumerable<Action> rightToolsDrawActions = rightTools.Select(TakeDrawAction);
+                  var assetDebugGroup = new BaseToolbarElement[]
+                  {
+                              new ToolbarRecompile(),
+                              new ToolbarReserializeAll(),
+                              new ToolbarReserializeSelected(),
+                  };
 
-                  ToolbarExtender.LeftToolbarGUI.AddRange(leftToolsDrawActions);
-                  ToolbarExtender.RightToolbarGUI.AddRange(rightToolsDrawActions);
+                  ToolbarCallback.OnToolbarGUILeftOfCenter = () =>
+                  {
+                        GUILayout.BeginHorizontal(ToolbarStyles.ToolbarHorizontalGroupStyle);
+
+                        GUILayout.FlexibleSpace();
+                        DrawGroup(sceneManagementGroup);
+
+                        GUILayout.Space(50);
+                        GUILayout.EndHorizontal();
+                  };
+
+                  ToolbarCallback.OnToolbarGUIRightOfCenter = () =>
+                  {
+                        GUILayout.BeginHorizontal(ToolbarStyles.ToolbarHorizontalGroupStyle);
+
+                        GUILayout.Space(50);
+
+                        DrawGroup(controlGroup);
+                        GUILayout.Space(50);
+                        DrawGroup(assetDebugGroup);
+
+                        GUILayout.EndHorizontal();
+                  };
+
+                  List<BaseToolbarElement> allElements = sceneManagementGroup.Concat(controlGroup).Concat(assetDebugGroup).ToList();
+
+                  allElements.ForEach(static e => e.OnInit());
+
+                  EditorApplication.playModeStateChanged += (state) =>
+                  {
+                        allElements.ForEach(e => e.OnPlayModeStateChanged(state));
+
+                        if (state == PlayModeStateChange.EnteredEditMode)
+                        {
+                              SceneAssetsUtils.RestoreSceneAfterPlay();
+                        }
+                  };
+                  Selection.selectionChanged += () => allElements.ForEach(static e => e.OnSelectionChanged());
             }
 
-            private static Action TakeDrawAction(BaseToolbarElement element)
+            private static void DrawGroup(IEnumerable<BaseToolbarElement> elements)
             {
-                  Action action = element.DrawInToolbar;
-
-                  return action;
+                  foreach (BaseToolbarElement element in elements)
+                  {
+                        element.OnDrawInToolbar();
+                  }
             }
       }
 }

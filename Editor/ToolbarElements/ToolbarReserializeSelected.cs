@@ -9,27 +9,43 @@ namespace CustomToolbar.Editor.ToolbarElements
       [Serializable]
       internal class ToolbarReserializeSelected : BaseToolbarElement
       {
-            private static GUIContent reserializeSelectedBtn;
+            private static GUIContent buttonContent;
 
-            public override string NameInList => "[Button] Reserialize selected";
-            public override int SortingGroup => 5;
+            public override string Name => "Reserialize Selected";
+            public override string Tooltip => "Forces a re-serialization of the selected assets in the Project window.";
 
-            public override void Init()
+            public override void OnInit()
             {
-                  reserializeSelectedBtn = EditorGUIUtility.IconContent("Refresh");
-                  reserializeSelectedBtn.tooltip = "Reserialize Selected Assets";
+                  buttonContent = EditorGUIUtility.IconContent("d_Refresh", this.Tooltip);
+
+                  UpdateEnabledState();
             }
 
-            protected override void OnDrawInList(Rect position)
+            public override void OnPlayModeStateChanged(PlayModeStateChange state)
             {
+                  UpdateEnabledState();
             }
 
-            protected override void OnDrawInToolbar()
+            public override void OnSelectionChanged()
             {
-                  if (GUILayout.Button(reserializeSelectedBtn, ToolbarStyles.commandButtonStyle))
+                  UpdateEnabledState();
+            }
+
+            public override void OnDrawInToolbar()
+            {
+                  using (new EditorGUI.DisabledScope(!this.Enabled))
                   {
-                        ForceReserializeAssetsUtils.ForceReserializeSelectedAssets();
+                        if (GUILayout.Button(buttonContent, ToolbarStyles.CommandButtonStyle, GUILayout.Width(this.Width)))
+                        {
+                              Debug.Log("Forcing reserialization of selected assets...");
+                              SerializeAssetsUtils.ForceReserializeSelectedAssets();
+                        }
                   }
+            }
+
+            private void UpdateEnabledState()
+            {
+                  this.Enabled = !EditorApplication.isPlayingOrWillChangePlaymode && Selection.assetGUIDs.Length > 0;
             }
       }
 }

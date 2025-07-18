@@ -1,5 +1,4 @@
-﻿using System;
-using CustomToolbar.Editor.Core;
+﻿using CustomToolbar.Editor.Core;
 using CustomToolbar.Editor.Utils;
 using UnityEditor;
 using UnityEngine;
@@ -7,8 +6,7 @@ using UnityEngine.SceneManagement;
 
 namespace CustomToolbar.Editor.ToolbarElements
 {
-      [Serializable]
-      internal class ToolbarStartFromFirstScene : BaseToolbarElement
+      sealed internal class ToolbarStartFromFirstScene : BaseToolbarElement
       {
             private static GUIContent buttonContent;
 

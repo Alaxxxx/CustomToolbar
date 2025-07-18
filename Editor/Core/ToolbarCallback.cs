@@ -71,7 +71,10 @@ namespace CustomToolbar.Editor.Core
                   {
                               style =
                               {
-                                          flexGrow = 1,
+                                          alignContent = Align.Center,
+                                          alignItems = Align.Center,
+                                          alignSelf = Align.Stretch,
+                                          display = DisplayStyle.Flex,
                                           flexDirection = FlexDirection.Row,
                                           justifyContent = Justify.FlexEnd
                               }
@@ -82,7 +85,10 @@ namespace CustomToolbar.Editor.Core
                   {
                               style =
                               {
-                                          flexGrow = 1,
+                                          alignContent = Align.Center,
+                                          alignItems = Align.Center,
+                                          alignSelf = Align.Stretch,
+                                          display = DisplayStyle.Flex,
                                           flexDirection = FlexDirection.Row,
                                           justifyContent = Justify.FlexStart
                               }

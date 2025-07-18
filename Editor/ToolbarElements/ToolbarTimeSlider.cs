@@ -1,16 +1,16 @@
-﻿using System;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
 namespace CustomToolbar.Editor.ToolbarElements
 {
-      [Serializable]
-      internal class ToolbarTimeSlider : BaseToolbarElement
+      sealed internal class ToolbarTimeSlider : BaseToolbarElement
       {
-            [SerializeField] private float minTimeScale;
-            [SerializeField] private float maxTimeScale = 5f;
+            private const float MinTimeScale = 0f;
+            private const float MaxTimeScale = 10f;
+            private const string ToolbarTimeSliderKey = "CustomToolbar.ToolbarTimeSlider.Value";
 
             private float currentTimeScale;
+            private GUIContent buttonContent;
 
             public override string Name => "Timescale Slider";
             public override string Tooltip => "Controls Time.timeScale to slow down or speed up the game.";
@@ -19,16 +19,19 @@ namespace CustomToolbar.Editor.ToolbarElements
             {
                   this.Width = 200;
 
-                  currentTimeScale = 1.0f;
+                  currentTimeScale = EditorPrefs.GetFloat(ToolbarTimeSliderKey, 1.0f);
                   Time.timeScale = currentTimeScale;
+                  buttonContent = new GUIContent("Time", this.Tooltip);
             }
 
             public override void OnPlayModeStateChanged(PlayModeStateChange state)
             {
-                  if (state == PlayModeStateChange.ExitingPlayMode || state == PlayModeStateChange.EnteredEditMode)
+                  if (state is PlayModeStateChange.ExitingPlayMode or PlayModeStateChange.EnteredEditMode)
                   {
                         currentTimeScale = 1.0f;
                         Time.timeScale = currentTimeScale;
+
+                        EditorPrefs.SetFloat(ToolbarTimeSliderKey, currentTimeScale);
                   }
 
                   this.Enabled = (state == PlayModeStateChange.EnteredPlayMode);
@@ -38,15 +41,17 @@ namespace CustomToolbar.Editor.ToolbarElements
             {
                   using (new EditorGUI.DisabledScope(!this.Enabled))
                   {
-                        EditorGUILayout.LabelField("Time", GUILayout.Width(35));
+                        EditorGUILayout.LabelField(buttonContent, GUILayout.Width(35));
 
                         EditorGUI.BeginChangeCheck();
 
-                        currentTimeScale = EditorGUILayout.Slider(currentTimeScale, minTimeScale, maxTimeScale, GUILayout.Width(this.Width - 40));
+                        currentTimeScale = EditorGUILayout.Slider(currentTimeScale, MinTimeScale, MaxTimeScale, GUILayout.Width(this.Width - 40));
 
                         if (EditorGUI.EndChangeCheck())
                         {
                               Time.timeScale = currentTimeScale;
+
+                              EditorPrefs.SetFloat(ToolbarTimeSliderKey, currentTimeScale);
                         }
                   }
             }

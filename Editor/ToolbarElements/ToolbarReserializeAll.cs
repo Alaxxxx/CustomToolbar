@@ -6,17 +6,18 @@ using UnityEngine;
 
 namespace CustomToolbar.Editor.ToolbarElements
 {
-      [Serializable]
-      internal class ToolbarReserializeAll : BaseToolbarElement
+      sealed internal class ToolbarReserializeAll : BaseToolbarElement
       {
-            private static GUIContent buttonContent;
+            private GUIContent buttonContent;
 
             public override string Name => "Reserialize All Assets";
             public override string Tooltip => "Forces a re-serialization of all assets in the project. Useful after a Unity upgrade or to fix serialization errors.";
 
             public override void OnInit()
             {
-                  buttonContent = EditorGUIUtility.IconContent("d_Refresh", this.Tooltip);
+                  Texture icon = EditorGUIUtility.IconContent("d_Refresh").image;
+
+                  buttonContent = new GUIContent(icon, this.Tooltip);
             }
 
             public override void OnDrawInToolbar()
@@ -27,7 +28,7 @@ namespace CustomToolbar.Editor.ToolbarElements
                   {
                         if (GUILayout.Button(buttonContent, ToolbarStyles.CommandButtonStyle, GUILayout.Width(this.Width)))
                         {
-                              Debug.Log("Starting to force reserialize all assets. This may take a while...");
+                              Debug.Log("Starting to force reserialize all assets...");
                               SerializeAssetsUtils.ForceReserializeAllAssets();
                         }
                   }

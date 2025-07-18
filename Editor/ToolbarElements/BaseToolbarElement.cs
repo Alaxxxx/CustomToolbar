@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using UnityEditor;
-using UnityEngine;
 
 namespace CustomToolbar.Editor.ToolbarElements
 {
@@ -9,10 +8,8 @@ namespace CustomToolbar.Editor.ToolbarElements
       /// The base contract for any element that can be displayed on the Custom Toolbar.
       /// To create a new element, inherit from this class.
       /// </summary>
-      [Serializable]
       internal abstract class BaseToolbarElement : IComparable<BaseToolbarElement>
       {
-            [NonSerialized]
             private static string rootPath;
 
             /// <summary>
@@ -26,23 +23,15 @@ namespace CustomToolbar.Editor.ToolbarElements
             public virtual string Tooltip => string.Empty;
 
             /// <summary>
-            /// Gets or sets a value indicating whether this element is drawn in the toolbar.
-            /// </summary>
-            [field: SerializeField]
-            public bool Visible { get; set; } = true;
-
-            /// <summary>
             /// Gets or sets a value indicating whether this element is interactable (e.g., clickable).
             /// If false, the element will appear greyed out.
             /// </summary>
-            [field: SerializeField]
-            public bool Enabled { get; set; } = true;
+            protected bool Enabled { get; set; } = true;
 
             /// <summary>
             /// Gets or sets the width of the element in the toolbar, in pixels.
             /// </summary>
-            [field: SerializeField]
-            public float Width { get; set; } = 32;
+            protected float Width { get; set; } = 32;
 
 #region EventLoop
 
@@ -92,19 +81,16 @@ namespace CustomToolbar.Editor.ToolbarElements
                         return rootPath;
                   }
 
-                  // Find the path of this script (BaseToolbarElement.cs)
                   string[] guids = AssetDatabase.FindAssets("t:script BaseToolbarElement");
 
                   if (guids.Length > 0)
                   {
                         string path = AssetDatabase.GUIDToAssetPath(guids[0]);
 
-                        // The root is two levels up from the script's directory (ToolbarElements/Editor/CustomToolbar)
                         rootPath = Path.GetDirectoryName(Path.GetDirectoryName(path));
                   }
                   else
                   {
-                        // Fallback in case the script cannot be found
                         rootPath = "Assets/CustomToolbar";
                   }
 

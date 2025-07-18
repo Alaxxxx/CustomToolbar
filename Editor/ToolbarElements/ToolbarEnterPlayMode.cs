@@ -1,60 +1,79 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using CustomToolbar.Editor.Core;
 using UnityEditor;
 using UnityEngine;
 
 namespace CustomToolbar.Editor.ToolbarElements
 {
-      [Serializable]
-      internal class ToolbarEnterPlayMode : BaseToolbarElement
+      sealed internal class ToolbarEnterPlayMode : BaseToolbarElement
       {
-            private static string[] playModeOptionsDisplay;
+            private List<(string name, EnterPlayModeOptions? value)> availableOptions;
             private int selectedOptionIndex;
 
-            [NonSerialized] private GUIContent buttonContent;
+            private GUIContent buttonContent;
 
             public override string Name => "Play Mode Options";
             public override string Tooltip => "Configure 'Enter Play Mode' settings for faster iteration (Domain/Scene Reload).";
 
             public override void OnInit()
             {
-                  this.Width = 120;
+                  this.Width = 150;
+                  buttonContent = new GUIContent("", this.Tooltip);
 
-                  if (playModeOptionsDisplay == null)
+                  if (availableOptions == null)
                   {
-                        List<string> enumOptions = Enum.GetNames(typeof(EnterPlayModeOptions)).ToList();
-                        enumOptions.Insert(0, "Default");
-                        playModeOptionsDisplay = enumOptions.ToArray();
+                        availableOptions = new List<(string name, EnterPlayModeOptions? value)>
+                        {
+                                    ("Default", null)
+                        };
+
+                        foreach (EnterPlayModeOptions option in Enum.GetValues(typeof(EnterPlayModeOptions)))
+                        {
+                              if (option == EnterPlayModeOptions.None || option.ToString() == "DisableSceneBackupUnlessDirty")
+                              {
+                                    continue;
+                              }
+
+                              availableOptions.Add((option.ToString(), option));
+                        }
                   }
 
-                  selectedOptionIndex = EditorSettings.enterPlayModeOptionsEnabled ? (int)EditorSettings.enterPlayModeOptions + 1 : 0;
-                  buttonContent = new GUIContent("", this.Tooltip);
+                  selectedOptionIndex = EditorSettings.enterPlayModeOptionsEnabled
+                              ? availableOptions.FindIndex(static x => x.value == EditorSettings.enterPlayModeOptions)
+                              : 0;
             }
 
             public override void OnDrawInToolbar()
             {
-                  buttonContent.text = playModeOptionsDisplay[selectedOptionIndex];
+                  if (selectedOptionIndex < 0 || selectedOptionIndex >= availableOptions.Count)
+                  {
+                        selectedOptionIndex = 0;
+                  }
+
+                  buttonContent.text = availableOptions[selectedOptionIndex].name;
 
                   if (EditorGUILayout.DropdownButton(buttonContent, FocusType.Keyboard, ToolbarStyles.CommandPopupStyle, GUILayout.Width(this.Width)))
                   {
                         var menu = new GenericMenu();
 
-                        for (int i = 0; i < playModeOptionsDisplay.Length; i++)
+                        for (int i = 0; i < availableOptions.Count; i++)
                         {
                               int index = i;
+                              (string name, EnterPlayModeOptions? value) option = availableOptions[index];
 
-                              menu.AddItem(new GUIContent(playModeOptionsDisplay[index]), selectedOptionIndex == index, () =>
+                              menu.AddItem(new GUIContent(option.name), selectedOptionIndex == index, () =>
                               {
                                     selectedOptionIndex = index;
 
-                                    bool isEnabled = selectedOptionIndex != 0;
-                                    EditorSettings.enterPlayModeOptionsEnabled = isEnabled;
-
-                                    if (isEnabled)
+                                    if (option.value == null)
                                     {
-                                          EditorSettings.enterPlayModeOptions = (EnterPlayModeOptions)(selectedOptionIndex - 1);
+                                          EditorSettings.enterPlayModeOptionsEnabled = false;
+                                    }
+                                    else
+                                    {
+                                          EditorSettings.enterPlayModeOptionsEnabled = true;
+                                          EditorSettings.enterPlayModeOptions = option.value.Value;
                                     }
                               });
                         }

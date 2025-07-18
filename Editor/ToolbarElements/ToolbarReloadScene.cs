@@ -1,13 +1,11 @@
-﻿using System;
-using CustomToolbar.Editor.Core;
+﻿using CustomToolbar.Editor.Core;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace CustomToolbar.Editor.ToolbarElements
 {
-      [Serializable]
-      internal class ToolbarReloadScene : BaseToolbarElement
+      sealed internal class ToolbarReloadScene : BaseToolbarElement
       {
             private static GUIContent buttonContent;
 
@@ -16,7 +14,7 @@ namespace CustomToolbar.Editor.ToolbarElements
 
             public override void OnInit()
             {
-                  var icon = EditorGUIUtility.IconContent("d_Refresh").image;
+                  Texture icon = EditorGUIUtility.IconContent("d_Refresh").image;
                   buttonContent = new GUIContent(icon, this.Tooltip);
 
                   this.Enabled = false;

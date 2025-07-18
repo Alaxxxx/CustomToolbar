@@ -1,22 +1,22 @@
-﻿using System;
-using CustomToolbar.Editor.Core;
+﻿using CustomToolbar.Editor.Core;
 using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEngine;
 
 namespace CustomToolbar.Editor.ToolbarElements
 {
-      [Serializable]
-      internal class ToolbarRecompile : BaseToolbarElement
+      sealed internal class ToolbarRecompile : BaseToolbarElement
       {
-            private static GUIContent buttonContent;
+            private GUIContent buttonContent;
 
             public override string Name => "Recompile Scripts";
             public override string Tooltip => "Request a manual script compilation.";
 
             public override void OnInit()
             {
-                  buttonContent = EditorGUIUtility.IconContent("d_BuildSettings.Metro", "Recompile Scripts");
+                  Texture icon = EditorGUIUtility.IconContent("d_debug").image;
+
+                  buttonContent = new GUIContent(icon, this.Tooltip);
             }
 
             public override void OnDrawInToolbar()

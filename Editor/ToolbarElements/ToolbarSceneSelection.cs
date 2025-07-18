@@ -9,12 +9,11 @@ using UnityEngine.SceneManagement;
 
 namespace CustomToolbar.Editor.ToolbarElements
 {
-      [Serializable]
-      internal class ToolbarSceneSelection : BaseToolbarElement
+      sealed internal class ToolbarSceneSelection : BaseToolbarElement
       {
-            [NonSerialized] private GUIContent mButtonContent;
-            [NonSerialized] private readonly List<string> mScenePaths = new();
-            [NonSerialized] private Dictionary<string, int> mBuildSceneData;
+            private GUIContent mButtonContent;
+            private readonly List<string> mScenePaths = new();
+            private Dictionary<string, int> mBuildSceneData;
 
             public override string Name => "Scene Selection";
             public override string Tooltip => "Select a scene from the 'Assets/Scenes' folder.";
@@ -123,7 +122,7 @@ namespace CustomToolbar.Editor.ToolbarElements
                               return depthA.CompareTo(depthB);
                         }
 
-                        return pathA.CompareTo(pathB);
+                        return string.Compare(pathA, pathB, StringComparison.Ordinal);
                   });
 
                   Scene activeScene = SceneManager.GetActiveScene();

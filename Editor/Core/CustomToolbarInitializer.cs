@@ -19,18 +19,29 @@ namespace CustomToolbar.Editor.Core
                               new ToolbarReloadScene(),
                   };
 
+                  var versionControlGroup = new BaseToolbarElement[]
+                  {
+                              new ToolbarGitStatus(),
+                  };
+
+                  var utilityGroup = new BaseToolbarElement[]
+                  {
+                              new ToolbarScreenshot(),
+                              new ToolbarClearPlayerPrefs(),
+                              new ToolbarSaveProject(),
+                  };
+
                   var controlGroup = new BaseToolbarElement[]
                   {
-                              new ToolbarEnterPlayMode(),
                               new ToolbarTimeSlider(),
                               new ToolbarFpsSlider(),
                   };
 
                   var assetDebugGroup = new BaseToolbarElement[]
                   {
+                              new ToolbarEnterPlayMode(),
                               new ToolbarRecompile(),
                               new ToolbarReserializeAll(),
-                              new ToolbarReserializeSelected(),
                   };
 
                   ToolbarCallback.OnToolbarGUILeftOfCenter = () =>
@@ -38,6 +49,10 @@ namespace CustomToolbar.Editor.Core
                         GUILayout.BeginHorizontal(ToolbarStyles.ToolbarHorizontalGroupStyle);
 
                         GUILayout.FlexibleSpace();
+                        DrawGroup(versionControlGroup);
+                        GUILayout.Space(50);
+                        DrawGroup(utilityGroup);
+                        GUILayout.Space(50);
                         DrawGroup(sceneManagementGroup);
 
                         GUILayout.Space(50);
@@ -57,7 +72,8 @@ namespace CustomToolbar.Editor.Core
                         GUILayout.EndHorizontal();
                   };
 
-                  List<BaseToolbarElement> allElements = sceneManagementGroup.Concat(controlGroup).Concat(assetDebugGroup).ToList();
+                  List<BaseToolbarElement> allElements =
+                              sceneManagementGroup.Concat(utilityGroup).Concat(controlGroup).Concat(assetDebugGroup).Concat(versionControlGroup).ToList();
 
                   allElements.ForEach(static e => e.OnInit());
 

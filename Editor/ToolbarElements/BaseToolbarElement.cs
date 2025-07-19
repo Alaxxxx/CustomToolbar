@@ -7,7 +7,7 @@ namespace CustomToolbar.Editor.ToolbarElements
       /// The base contract for any element that can be displayed on the Custom Toolbar.
       /// To create a new element, inherit from this class.
       /// </summary>
-      internal abstract class BaseToolbarElement : IComparable<BaseToolbarElement>
+      public abstract class BaseToolbarElement : IComparable<BaseToolbarElement>
       {
             /// <summary>
             /// The display name of the element in the settings UI.

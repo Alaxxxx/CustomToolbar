@@ -117,6 +117,11 @@ namespace CustomToolbar.Editor.Settings
                   debugGroup.elements.Add(new ToolbarElement { name = typeof(ToolbarRecompile).AssemblyQualifiedName });
                   debugGroup.elements.Add(new ToolbarElement { name = typeof(ToolbarReserializeAll).AssemblyQualifiedName });
                   config.groups.Add(debugGroup);
+
+                  // Groupe 5: Toolbox
+                  var toolboxGroup = new ToolbarGroup { groupName = "Toolbox", side = ToolbarSide.Right };
+                  toolboxGroup.elements.Add(new ToolbarElement { name = typeof(ToolbarToolbox).AssemblyQualifiedName });
+                  config.groups.Add(toolboxGroup);
             }
       }
 }

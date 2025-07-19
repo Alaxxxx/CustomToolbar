@@ -12,8 +12,8 @@ namespace CustomToolbar.Editor.ToolbarElements
             private float currentTimeScale;
             private GUIContent buttonContent;
 
-            public override string Name => "Timescale Slider";
-            public override string Tooltip => "Controls Time.timeScale to slow down or speed up the game.";
+            protected override string Name => "Timescale Slider";
+            protected override string Tooltip => "Controls Time.timeScale to slow down or speed up the game.";
 
             public override void OnInit()
             {

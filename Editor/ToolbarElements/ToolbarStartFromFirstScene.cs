@@ -10,8 +10,8 @@ namespace CustomToolbar.Editor.ToolbarElements
       {
             private static GUIContent buttonContent;
 
-            public override string Name => "Start From First Scene";
-            public override string Tooltip => "Saves changes, starts Play Mode from the first scene in Build Settings, and returns to the original scene on exit.";
+            protected override string Name => "Start From First Scene";
+            protected override string Tooltip => "Saves changes, starts Play Mode from the first scene in Build Settings, and returns to the original scene on exit.";
 
             public override void OnInit()
             {

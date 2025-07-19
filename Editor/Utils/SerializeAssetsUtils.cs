@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEditor;
+﻿using UnityEditor;
 
 namespace CustomToolbar.Editor.Utils
 {
@@ -14,21 +13,6 @@ namespace CustomToolbar.Editor.Utils
                   }
 
                   AssetDatabase.ForceReserializeAssets();
-            }
-
-            public static void ForceReserializeSelectedAssets()
-            {
-                  string[] assetGUIDs = Selection.assetGUIDs;
-
-                  if (assetGUIDs.Length == 0)
-                  {
-                        EditorUtility.DisplayDialog("Attention", "No assets are selected.", "Ok");
-
-                        return;
-                  }
-
-                  string[] assetPaths = Array.ConvertAll(assetGUIDs, AssetDatabase.GUIDToAssetPath);
-                  AssetDatabase.ForceReserializeAssets(assetPaths);
             }
       }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using UnityEditor;
 
 namespace CustomToolbar.Editor.ToolbarElements
@@ -10,21 +9,19 @@ namespace CustomToolbar.Editor.ToolbarElements
       /// </summary>
       internal abstract class BaseToolbarElement : IComparable<BaseToolbarElement>
       {
-            private static string rootPath;
-
             /// <summary>
             /// The display name of the element in the settings UI.
             /// </summary>
-            public abstract string Name { get; }
+            protected abstract string Name { get; }
 
             /// <summary>
             /// The tooltip displayed when hovering over the element in the toolbar.
             /// </summary>
-            public virtual string Tooltip => string.Empty;
+            protected virtual string Tooltip => string.Empty;
 
             /// <summary>
-            /// Gets or sets a value indicating whether this element is interactable (e.g., clickable).
-            /// If false, the element will appear greyed out.
+            /// Gets or sets a value indicating whether this element is enabled.
+            /// If false, the element will not be shown.
             /// </summary>
             protected bool Enabled { get; set; } = true;
 
@@ -37,7 +34,7 @@ namespace CustomToolbar.Editor.ToolbarElements
 
             /// <summary>
             /// One-time initialization logic for the element.
-            /// Called once when the editor starts. Use this to load icons or cache styles.
+            /// Called once when the editor starts. Use this to load icons, cache styles or setup width.
             /// </summary>
             public virtual void OnInit()
             {
@@ -48,13 +45,6 @@ namespace CustomToolbar.Editor.ToolbarElements
             /// Allows the element to change its behavior dynamically.
             /// </summary>
             public virtual void OnPlayModeStateChanged(PlayModeStateChange state)
-            {
-            }
-
-            /// <summary>
-            /// Called when the user's selection changes in the editor.
-            /// </summary>
-            public virtual void OnSelectionChanged()
             {
             }
 
@@ -72,29 +62,6 @@ namespace CustomToolbar.Editor.ToolbarElements
             public int CompareTo(BaseToolbarElement other)
             {
                   return string.Compare(this.Name, other.Name, StringComparison.Ordinal);
-            }
-
-            protected static string GetRootPath()
-            {
-                  if (!string.IsNullOrEmpty(rootPath))
-                  {
-                        return rootPath;
-                  }
-
-                  string[] guids = AssetDatabase.FindAssets("t:script BaseToolbarElement");
-
-                  if (guids.Length > 0)
-                  {
-                        string path = AssetDatabase.GUIDToAssetPath(guids[0]);
-
-                        rootPath = Path.GetDirectoryName(Path.GetDirectoryName(path));
-                  }
-                  else
-                  {
-                        rootPath = "Assets/CustomToolbar";
-                  }
-
-                  return rootPath;
             }
       }
 }

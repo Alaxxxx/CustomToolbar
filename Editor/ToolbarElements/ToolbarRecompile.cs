@@ -9,8 +9,8 @@ namespace CustomToolbar.Editor.ToolbarElements
       {
             private GUIContent buttonContent;
 
-            public override string Name => "Recompile Scripts";
-            public override string Tooltip => "Request a manual script compilation.";
+            protected override string Name => "Recompile Scripts";
+            protected override string Tooltip => "Request a manual script compilation.";
 
             public override void OnInit()
             {

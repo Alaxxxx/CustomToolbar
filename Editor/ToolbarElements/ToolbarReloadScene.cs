@@ -9,8 +9,8 @@ namespace CustomToolbar.Editor.ToolbarElements
       {
             private static GUIContent buttonContent;
 
-            public override string Name => "Reload Scene";
-            public override string Tooltip => "Reloads the currently active scene (only in Play Mode).";
+            protected override string Name => "Reload Scene";
+            protected override string Tooltip => "Reloads the currently active scene (only in Play Mode).";
 
             public override void OnInit()
             {

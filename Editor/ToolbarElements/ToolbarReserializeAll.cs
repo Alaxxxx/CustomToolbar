@@ -1,5 +1,4 @@
-﻿using System;
-using CustomToolbar.Editor.Core;
+﻿using CustomToolbar.Editor.Core;
 using CustomToolbar.Editor.Utils;
 using UnityEditor;
 using UnityEngine;
@@ -10,8 +9,8 @@ namespace CustomToolbar.Editor.ToolbarElements
       {
             private GUIContent buttonContent;
 
-            public override string Name => "Reserialize All Assets";
-            public override string Tooltip => "Forces a re-serialization of all assets in the project. Useful after a Unity upgrade or to fix serialization errors.";
+            protected override string Name => "Reserialize All Assets";
+            protected override string Tooltip => "Forces a re-serialization of all assets in the project. Useful after a Unity upgrade or to fix serialization errors.";
 
             public override void OnInit()
             {

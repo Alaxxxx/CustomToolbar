@@ -13,8 +13,8 @@ namespace CustomToolbar.Editor.ToolbarElements
 
             private GUIContent buttonContent;
 
-            public override string Name => "Play Mode Options";
-            public override string Tooltip => "Configure 'Enter Play Mode' settings for faster iteration (Domain/Scene Reload).";
+            protected override string Name => "Play Mode Options";
+            protected override string Tooltip => "Configure 'Enter Play Mode' settings for faster iteration (Domain/Scene Reload).";
 
             public override void OnInit()
             {

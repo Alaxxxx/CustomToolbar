@@ -8,8 +8,8 @@ namespace CustomToolbar.Editor.ToolbarElements
       {
             private GUIContent buttonContent;
 
-            public override string Name => "Clear PlayerPrefs";
-            public override string Tooltip => "Deletes all keys and values from PlayerPrefs. This cannot be undone.";
+            protected override string Name => "Clear PlayerPrefs";
+            protected override string Tooltip => "Deletes all keys and values from PlayerPrefs. This cannot be undone.";
 
             public override void OnInit()
             {

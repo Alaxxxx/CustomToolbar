@@ -14,8 +14,8 @@ namespace CustomToolbar.Editor.ToolbarElements
             private string rootRepoPath;
             private List<string> subRepoPaths;
 
-            public override string Name => "Git Status";
-            public override string Tooltip => "View and switch Git branches. A '*' indicates uncommitted changes.";
+            protected override string Name => "Git Status";
+            protected override string Tooltip => "View and switch Git branches. A '*' indicates uncommitted changes.";
 
             public override void OnInit()
             {

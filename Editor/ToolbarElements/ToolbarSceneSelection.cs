@@ -11,12 +11,12 @@ namespace CustomToolbar.Editor.ToolbarElements
 {
       sealed internal class ToolbarSceneSelection : BaseToolbarElement
       {
-            private GUIContent mButtonContent;
-            private readonly List<string> mScenePaths = new();
-            private Dictionary<string, int> mBuildSceneData;
+            private GUIContent buttonContent;
+            private readonly List<string> scenePaths = new();
+            private Dictionary<string, int> buildSceneData;
 
-            public override string Name => "Scene Selection";
-            public override string Tooltip => "Select a scene from the 'Assets/Scenes' folder.";
+            protected override string Name => "Scene Selection";
+            protected override string Tooltip => "Select a scene from the 'Assets/Scenes' folder.";
 
             public override void OnInit()
             {
@@ -48,12 +48,12 @@ namespace CustomToolbar.Editor.ToolbarElements
             {
                   using (new EditorGUI.DisabledScope(EditorApplication.isPlaying))
                   {
-                        if (mButtonContent == null)
+                        if (buttonContent == null)
                         {
                               return;
                         }
 
-                        if (EditorGUILayout.DropdownButton(mButtonContent, FocusType.Keyboard, ToolbarStyles.CommandPopupStyle, GUILayout.Width(Width)))
+                        if (EditorGUILayout.DropdownButton(buttonContent, FocusType.Keyboard, ToolbarStyles.CommandPopupStyle, GUILayout.Width(Width)))
                         {
                               BuildSceneMenu().ShowAsContext();
                         }
@@ -64,18 +64,18 @@ namespace CustomToolbar.Editor.ToolbarElements
             {
                   var menu = new GenericMenu();
 
-                  if (mScenePaths.Count == 0)
+                  if (scenePaths.Count == 0)
                   {
                         menu.AddDisabledItem(new GUIContent("No scenes found in Assets/Scenes"));
 
                         return menu;
                   }
 
-                  foreach (string path in mScenePaths)
+                  foreach (string path in scenePaths)
                   {
                         string menuPath = path["Assets/Scenes/".Length..].Replace(".unity", "", StringComparison.Ordinal);
 
-                        if (mBuildSceneData.TryGetValue(path, out int buildIndex))
+                        if (buildSceneData.TryGetValue(path, out int buildIndex))
                         {
                               menuPath = $"{menuPath}   [{buildIndex}]";
                         }
@@ -88,15 +88,15 @@ namespace CustomToolbar.Editor.ToolbarElements
 
             private void RefreshScenesList()
             {
-                  mScenePaths.Clear();
+                  scenePaths.Clear();
 
-                  mBuildSceneData = new Dictionary<string, int>();
+                  buildSceneData = new Dictionary<string, int>();
 
                   for (int i = 0; i < EditorBuildSettings.scenes.Length; i++)
                   {
                         if (!string.IsNullOrEmpty(EditorBuildSettings.scenes[i].path))
                         {
-                              mBuildSceneData[EditorBuildSettings.scenes[i].path] = i;
+                              buildSceneData[EditorBuildSettings.scenes[i].path] = i;
                         }
                   }
 
@@ -108,25 +108,23 @@ namespace CustomToolbar.Editor.ToolbarElements
 
                         if (path.StartsWith("Assets/Scenes/", StringComparison.Ordinal))
                         {
-                              mScenePaths.Add(path);
+                              scenePaths.Add(path);
                         }
                   }
 
-                  mScenePaths.Sort(static (pathA, pathB) =>
+                  scenePaths.Sort(static (pathA, pathB) =>
                   {
                         int depthA = pathA.Count(static c => c == '/');
                         int depthB = pathB.Count(static c => c == '/');
 
-                        if (depthA != depthB)
-                        {
-                              return depthA.CompareTo(depthB);
-                        }
-
-                        return string.Compare(pathA, pathB, StringComparison.Ordinal);
+                        return depthA != depthB ? depthA.CompareTo(depthB) : string.Compare(pathA, pathB, StringComparison.Ordinal);
                   });
 
                   Scene activeScene = SceneManager.GetActiveScene();
-                  mButtonContent = new GUIContent(activeScene.name, Tooltip);
+
+                  Texture sceneIcon = EditorGUIUtility.IconContent("d_SceneAsset Icon").image;
+
+                  buttonContent = new GUIContent(activeScene.name, sceneIcon, Tooltip);
             }
 
             private static void OpenScene(string path)

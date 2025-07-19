@@ -12,8 +12,8 @@ namespace CustomToolbar.Editor.ToolbarElements
             private int currentFPS;
             private GUIContent buttonContent;
 
-            public override string Name => "FPS Slider";
-            public override string Tooltip => "Controls Application.targetFrameRate. Set to 0 for unlimited FPS.";
+            protected override string Name => "FPS Slider";
+            protected override string Tooltip => "Controls Application.targetFrameRate. Set to 0 for unlimited FPS.";
 
             public override void OnInit()
             {

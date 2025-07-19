@@ -9,8 +9,8 @@ namespace CustomToolbar.Editor.ToolbarElements
       {
             private GUIContent buttonContent;
 
-            public override string Name => "Save Project";
-            public override string Tooltip => "Saves the current scene(s) and all modified assets in the project.";
+            protected override string Name => "Save Project";
+            protected override string Tooltip => "Saves the current scene(s) and all modified assets in the project.";
 
             public override void OnInit()
             {

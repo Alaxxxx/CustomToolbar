@@ -58,7 +58,7 @@ Once installed, the custom toolbar will appear automatically with a default layo
 
 To configure the toolbar, go to **`Edit > Project Settings > Custom Toolbar`**.
 
-<img width="602" height="784" alt="Screenshot_2" src="https://github.com/user-attachments/assets/6988869b-875c-4eb2-a37c-02e734908ace" />
+<img width="859" height="620" alt="Screen_Settings1" src="https://github.com/user-attachments/assets/c33d5876-5a3c-4e80-a3ba-4814a99419e7" />
 
 From this panel, you can:
 * **Manage Groups:** Create, delete, or rename groups. The group name is for your organization only.

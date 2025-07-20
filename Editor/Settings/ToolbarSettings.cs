@@ -96,6 +96,8 @@ namespace CustomToolbar.Editor.Settings
                   utilsGroup.elements.Add(new ToolbarElement { name = typeof(ToolbarScreenshot).AssemblyQualifiedName });
                   utilsGroup.elements.Add(new ToolbarElement { name = typeof(ToolbarClearPlayerPrefs).AssemblyQualifiedName });
                   utilsGroup.elements.Add(new ToolbarElement { name = typeof(ToolbarSaveProject).AssemblyQualifiedName });
+                  utilsGroup.elements.Add(new ToolbarElement { name = typeof(ToolbarFindMissingReferences).AssemblyQualifiedName });
+                  utilsGroup.elements.Add(new ToolbarElement { name = typeof(ToolbarSceneBookmarks).AssemblyQualifiedName });
                   config.groups.Add(utilsGroup);
 
                   // Groupe 2 : Scene Management

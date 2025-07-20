@@ -4,8 +4,10 @@ using System.Linq;
 using System.Reflection;
 using CustomToolbar.Editor.ToolbarElements;
 using UnityEditor;
+using UnityEditor.Compilation;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace CustomToolbar.Editor.Settings
 {
@@ -20,10 +22,26 @@ namespace CustomToolbar.Editor.Settings
             // undo/redo operations, and change tracking for the configuration data.
             private SerializedObject _serializedConfig;
 
+            // Holds the currently selected object in the settings GUI.
             private object _selectedObject;
 
+            // Scroll position for the left panel, used to maintain the scroll state during GUI rendering.
             private Vector2 _leftPanelScrollPos;
+
+            // Set of expanded folder names in the toolbox shortcuts section.
             private readonly HashSet<string> _expandedFolders = new();
+
+            // Search text for filtering groups and shortcuts in the left panel.
+            private string _searchText = "";
+
+            // Flag to track if there are unsaved changes in the settings.
+            private bool _hasUnsavedChanges;
+
+            // Fields for the method selection editor in the right panel.
+            private MonoScript _selectedScript;
+            private int _selectedMethodIndex;
+            private string[] _methodNames = Array.Empty<string>();
+            private object[] _methodParameters = Array.Empty<object>();
 
             private ToolbarSettingsProvider(string path, SettingsScope scope = SettingsScope.Project) : base(path, scope)
             {
@@ -59,8 +77,13 @@ namespace CustomToolbar.Editor.Settings
                         return;
                   }
 
+                  // Update the serialized object to reflect any changes made in the GUI
                   _serializedConfig.Update();
 
+                  // Begin change check to track modifications in the GUI
+                  EditorGUI.BeginChangeCheck();
+
+                  // Draw the main layout with two vertical panels: left for groups and shortcuts, right for selected item properties
                   EditorGUILayout.BeginHorizontal();
 
                   EditorGUILayout.BeginVertical(GUI.skin.box, GUILayout.Width(220), GUILayout.ExpandHeight(true));
@@ -75,6 +98,14 @@ namespace CustomToolbar.Editor.Settings
                   EditorGUILayout.EndVertical();
 
                   EditorGUILayout.EndHorizontal();
+
+                  // Check if any changes were made in the GUI
+                  if (EditorGUI.EndChangeCheck())
+                  {
+                        _hasUnsavedChanges = true;
+                  }
+
+                  // Apply any changes made to the serialized object back to the configuration asset
                   _serializedConfig.ApplyModifiedProperties();
             }
 
@@ -87,6 +118,8 @@ namespace CustomToolbar.Editor.Settings
 
             private void DrawLeftPanel()
             {
+                  _searchText = EditorGUILayout.TextField(_searchText, EditorStyles.toolbarSearchField);
+
                   SerializedProperty groupsProperty = _serializedConfig.FindProperty("groups");
                   EditorGUILayout.LabelField("Groups", EditorStyles.boldLabel);
                   var leftGroups = new List<(SerializedProperty prop, int originalIndex)>();
@@ -96,13 +129,16 @@ namespace CustomToolbar.Editor.Settings
                   {
                         SerializedProperty group = groupsProperty.GetArrayElementAtIndex(i);
 
-                        if ((Data.ToolbarSide)group.FindPropertyRelative("side").enumValueIndex == Data.ToolbarSide.Left)
+                        if (group.FindPropertyRelative("groupName").stringValue.IndexOf(_searchText, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
-                              leftGroups.Add((group, i));
-                        }
-                        else
-                        {
-                              rightGroups.Add((group, i));
+                              if ((Data.ToolbarSide)group.FindPropertyRelative("side").enumValueIndex == Data.ToolbarSide.Left)
+                              {
+                                    leftGroups.Add((group, i));
+                              }
+                              else
+                              {
+                                    rightGroups.Add((group, i));
+                              }
                         }
                   }
 
@@ -128,6 +164,18 @@ namespace CustomToolbar.Editor.Settings
 
                   EditorGUILayout.LabelField("Toolbox Shortcuts", EditorStyles.boldLabel);
                   DrawToolboxSection();
+
+                  GUILayout.FlexibleSpace();
+
+                  using (new EditorGUI.DisabledScope(!_hasUnsavedChanges))
+                  {
+                        if (GUILayout.Button("Save and Recompile", GUILayout.Height(30)))
+                        {
+                              AssetDatabase.SaveAssets();
+                              CompilationPipeline.RequestScriptCompilation();
+                              _hasUnsavedChanges = false;
+                        }
+                  }
             }
 
             private void DrawGroupList(List<(SerializedProperty prop, int originalIndex)> groupList, SerializedProperty parentArray)
@@ -169,12 +217,31 @@ namespace CustomToolbar.Editor.Settings
             private void DrawToolboxSection()
             {
                   SerializedProperty shortcutsProperty = _serializedConfig.FindProperty("toolboxShortcuts");
-
                   var shortcutsByMenu = new Dictionary<string, List<(SerializedProperty prop, int index)>>();
+                  var visibleShortcuts = new HashSet<string>();
+
+                  if (!string.IsNullOrEmpty(_searchText))
+                  {
+                        for (int i = 0; i < shortcutsProperty.arraySize; i++)
+                        {
+                              SerializedProperty shortcut = shortcutsProperty.GetArrayElementAtIndex(i);
+
+                              if (shortcut.FindPropertyRelative("displayName").stringValue.IndexOf(_searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                              {
+                                    visibleShortcuts.Add(shortcut.propertyPath);
+                              }
+                        }
+                  }
 
                   for (int i = 0; i < shortcutsProperty.arraySize; i++)
                   {
                         SerializedProperty shortcut = shortcutsProperty.GetArrayElementAtIndex(i);
+
+                        if (!string.IsNullOrEmpty(_searchText) && !visibleShortcuts.Contains(shortcut.propertyPath))
+                        {
+                              continue;
+                        }
+
                         string subMenuPath = shortcut.FindPropertyRelative("subMenuPath").stringValue.Trim();
 
                         if (!shortcutsByMenu.ContainsKey(subMenuPath))
@@ -196,7 +263,7 @@ namespace CustomToolbar.Editor.Settings
                         string folderName = kvp.Key;
                         bool isExpanded = _expandedFolders.Contains(folderName);
 
-                        bool newIsExpanded = EditorGUILayout.Foldout(isExpanded, folderName, true, EditorStyles.foldout);
+                        bool newIsExpanded = !string.IsNullOrEmpty(_searchText) || EditorGUILayout.Foldout(isExpanded, folderName, true, EditorStyles.foldout);
 
                         if (newIsExpanded != isExpanded)
                         {
@@ -222,10 +289,8 @@ namespace CustomToolbar.Editor.Settings
                   {
                         shortcutsProperty.InsertArrayElementAtIndex(shortcutsProperty.arraySize);
                         SerializedProperty newShortcut = shortcutsProperty.GetArrayElementAtIndex(shortcutsProperty.arraySize - 1);
-
                         newShortcut.FindPropertyRelative("displayName").stringValue = "New Shortcut";
                         newShortcut.FindPropertyRelative("isEnabled").boolValue = true;
-
                         _selectedObject = newShortcut;
                   }
             }
@@ -281,7 +346,7 @@ namespace CustomToolbar.Editor.Settings
 
                   if (_selectedObject is SerializedProperty { type: "ToolboxShortcut" } selectedProp)
                   {
-                        DrawShortcutEditor(selectedProp);
+                        DrawAdvancedShortcutEditor(selectedProp);
                   }
                   else if (_selectedObject is int selectedIndex)
                   {
@@ -294,42 +359,125 @@ namespace CustomToolbar.Editor.Settings
                   }
             }
 
-            private void DrawShortcutEditor(SerializedProperty shortcutProp)
+            private void DrawAdvancedShortcutEditor(SerializedProperty shortcutProp)
             {
                   EditorGUILayout.BeginHorizontal();
-                  EditorGUILayout.LabelField("Display Name", GUILayout.Width(110));
-                  EditorGUILayout.PropertyField(shortcutProp.FindPropertyRelative("displayName"), GUIContent.none);
 
+                  EditorGUILayout.PropertyField(shortcutProp.FindPropertyRelative("displayName"),
+                              new GUIContent("Display Name", "The name that will appear in the Toolbox menu."), true);
                   SerializedProperty enabledProp = shortcutProp.FindPropertyRelative("isEnabled");
                   Color originalBgColor = GUI.backgroundColor;
                   GUI.backgroundColor = enabledProp.boolValue ? new Color(0.4f, 1f, 0.6f, 1f) : new Color(1f, 0.6f, 0.6f, 1f);
-
                   enabledProp.boolValue = GUILayout.Toggle(enabledProp.boolValue, "Enabled", EditorStyles.toolbarButton, GUILayout.Width(70));
-
                   GUI.backgroundColor = originalBgColor;
                   EditorGUILayout.EndHorizontal();
 
-                  EditorGUILayout.BeginHorizontal();
-                  EditorGUILayout.LabelField("Menu (Optional)", GUILayout.Width(110));
-                  EditorGUILayout.PropertyField(shortcutProp.FindPropertyRelative("subMenuPath"), GUIContent.none, GUILayout.ExpandWidth(true));
-                  EditorGUILayout.EndHorizontal();
-                  EditorGUILayout.Space(5);
+                  EditorGUILayout.PropertyField(shortcutProp.FindPropertyRelative("subMenuPath"),
+                              new GUIContent("Menu (Optional)", "Organize shortcuts into sub-menus using a path (e.g., 'Creation/Prefabs')."));
+                  EditorGUILayout.Space();
 
-                  EditorGUILayout.LabelField("Action Path", EditorStyles.boldLabel);
                   SerializedProperty pathProp = shortcutProp.FindPropertyRelative("menuItemPath");
-                  pathProp.stringValue = EditorGUILayout.TextArea(pathProp.stringValue, GUI.skin.textArea, GUILayout.MinHeight(60));
+                  string path = pathProp.stringValue;
 
-                  var helpBoxStyle = new GUIStyle(EditorStyles.helpBox)
+                  string[] actionTypes = { "Window", "Project Asset", "Project Folder", "URL", "GameObject", "Method" };
+                  string[] prefixes = { "", "asset:", "folder:", "url:", "select:", "method:" };
+
+                  int currentTypeIndex = 0;
+
+                  for (int i = 1; i < prefixes.Length; i++)
                   {
-                              fontSize = 12,
-                              padding = new RectOffset(10, 10, 10, 10),
-                  };
+                        if (path.StartsWith(prefixes[i], StringComparison.OrdinalIgnoreCase))
+                        {
+                              currentTypeIndex = i;
 
-                  EditorGUILayout.LabelField(
-                              "Use prefixes for special actions:\n" + "• settings:Project/Player\n" + "• asset:Assets/Prefabs/My.prefab\n" + "• folder:Assets/Scenes\n" +
-                              "• url:https://unity.com\n" + "• select:/Player/Camera\n" + "• method:MyNamespace.MyClass.MyMethod|param1,true", helpBoxStyle);
+                              break;
+                        }
+                  }
+
+                  int newTypeIndex = EditorGUILayout.Popup("Action Type", currentTypeIndex, actionTypes);
+
+                  if (newTypeIndex != currentTypeIndex)
+                  {
+                        pathProp.stringValue = prefixes[newTypeIndex];
+                  }
+
+                  string value = path.Contains(":", StringComparison.OrdinalIgnoreCase) ? path.Substring(path.IndexOf(':') + 1) : path;
+
+                  switch (newTypeIndex)
+                  {
+                        case 1:
+                              var asset = AssetDatabase.LoadAssetAtPath<Object>(value);
+                              Object newAsset = EditorGUILayout.ObjectField("Asset", asset, typeof(Object), false);
+
+                              if (newAsset != asset)
+                              {
+                                    pathProp.stringValue = "asset:" + AssetDatabase.GetAssetPath(newAsset);
+                              }
+
+                              break;
+                        case 2:
+                              var folder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(value);
+                              Object newFolder = EditorGUILayout.ObjectField("Folder", folder, typeof(DefaultAsset), false);
+
+                              if (newFolder != folder)
+                              {
+                                    pathProp.stringValue = "folder:" + AssetDatabase.GetAssetPath(newFolder);
+                              }
+
+                              break;
+                        case 3:
+
+                              string newUrl = EditorGUILayout.TextField("URL", value);
+
+                              if (newUrl != value)
+                              {
+                                    pathProp.stringValue = "url:" + newUrl;
+                              }
+
+                              break;
+                        case 4:
+                              GameObject sceneObject = null;
+
+                              if (!string.IsNullOrEmpty(value))
+                              {
+                                    sceneObject = GameObject.Find(value);
+                              }
+
+                              var newSceneObject = (GameObject)EditorGUILayout.ObjectField("Scene GameObject", sceneObject, typeof(GameObject), true);
+
+                              if (newSceneObject != sceneObject)
+                              {
+                                    pathProp.stringValue = "select:" + GetGameObjectPath(newSceneObject);
+                              }
+
+                              break;
+                        case 5:
+                              DrawMethodEditor(pathProp);
+
+                              break;
+                        default:
+                              EditorGUILayout.LabelField(new GUIContent("Menu Path", "The path to the window in the main menu."));
+                              EditorGUILayout.BeginHorizontal();
+
+                              EditorGUILayout.TextField(path, GUI.skin.textField);
+
+                              if (GUILayout.Button("Browse...", GUILayout.Width(80)))
+                              {
+                                    MenuItemBrowser.Show(selectedPath =>
+                                    {
+                                          pathProp.stringValue = selectedPath;
+
+                                          _serializedConfig.ApplyModifiedProperties();
+                                    });
+                              }
+
+                              EditorGUILayout.EndHorizontal();
+
+                              break;
+                  }
 
                   GUILayout.FlexibleSpace();
+
                   Color originalColor = GUI.backgroundColor;
                   GUI.backgroundColor = new Color(1f, 0.4f, 0.4f);
 
@@ -351,6 +499,126 @@ namespace CustomToolbar.Editor.Settings
                   }
 
                   GUI.backgroundColor = originalColor;
+            }
+
+            private static string GetGameObjectPath(GameObject obj)
+            {
+                  if (obj == null)
+                  {
+                        return "";
+                  }
+
+                  string path = "/" + obj.name;
+
+                  while (obj.transform.parent != null)
+                  {
+                        obj = obj.transform.parent.gameObject;
+                        path = "/" + obj.name + path;
+                  }
+
+                  return path;
+            }
+
+            private void DrawMethodEditor(SerializedProperty pathProp)
+            {
+                  EditorGUILayout.BeginVertical(GUI.skin.box);
+
+                  _selectedScript = (MonoScript)EditorGUILayout.ObjectField("Script File", _selectedScript, typeof(MonoScript), false);
+
+                  MethodInfo[] methods = Array.Empty<MethodInfo>();
+
+                  if (_selectedScript != null)
+                  {
+                        Type scriptClass = _selectedScript.GetClass();
+
+                        if (scriptClass != null)
+                        {
+                              methods = scriptClass.GetMethods(BindingFlags.Public | BindingFlags.Static);
+                              _methodNames = methods.Select(static m => m.Name).ToArray();
+                        }
+                  }
+
+                  if (methods.Length == 0)
+                  {
+                        EditorGUILayout.HelpBox("Drop a script file above. Only public static methods will be shown.", MessageType.Info);
+                        EditorGUILayout.EndVertical();
+
+                        return;
+                  }
+
+                  _selectedMethodIndex = EditorGUILayout.Popup("Method", _selectedMethodIndex, _methodNames);
+
+                  if (_selectedMethodIndex >= methods.Length)
+                  {
+                        _selectedMethodIndex = 0;
+                  }
+
+                  MethodInfo selectedMethod = methods[_selectedMethodIndex];
+                  ParameterInfo[] parameters = selectedMethod.GetParameters();
+
+                  if (parameters.Length > 0)
+                  {
+                        EditorGUILayout.LabelField("Parameters", EditorStyles.boldLabel);
+
+                        if (_methodParameters.Length != parameters.Length)
+                        {
+                              _methodParameters = new object[parameters.Length];
+                        }
+
+                        for (int i = 0; i < parameters.Length; i++)
+                        {
+                              ParameterInfo p = parameters[i];
+
+                              EditorGUILayout.BeginHorizontal();
+                              EditorGUILayout.LabelField(p.Name, GUILayout.Width(100));
+
+                              try
+                              {
+                                    if (p.ParameterType == typeof(string))
+                                    {
+                                          _methodParameters[i] = EditorGUILayout.TextField((string)_methodParameters[i]);
+                                    }
+                                    else if (p.ParameterType == typeof(int))
+                                    {
+                                          _methodParameters[i] = EditorGUILayout.IntField((int)Convert.ChangeType(_methodParameters[i], typeof(int)));
+                                    }
+                                    else if (p.ParameterType == typeof(float))
+                                    {
+                                          _methodParameters[i] = EditorGUILayout.FloatField((float)Convert.ChangeType(_methodParameters[i], typeof(float)));
+                                    }
+                                    else if (p.ParameterType == typeof(bool))
+                                    {
+                                          _methodParameters[i] = EditorGUILayout.Toggle((bool)Convert.ChangeType(_methodParameters[i], typeof(bool)));
+                                    }
+                                    else if (p.ParameterType.IsEnum)
+                                    {
+                                          _methodParameters[i] = EditorGUILayout.EnumPopup((Enum)Convert.ChangeType(_methodParameters[i], p.ParameterType));
+                                    }
+                                    else
+                                    {
+                                          EditorGUILayout.LabelField($"Type '{p.ParameterType.Name}' not supported.");
+                                    }
+                              }
+                              catch (Exception)
+                              {
+                                    _methodParameters[i] = p.ParameterType.IsValueType ? Activator.CreateInstance(p.ParameterType) : null;
+                              }
+
+                              EditorGUILayout.EndHorizontal();
+                        }
+                  }
+
+                  string parametersString = string.Join(",", _methodParameters.Select(static p => p?.ToString() ?? ""));
+                  string finalPath = $"method:{selectedMethod.DeclaringType!.FullName}.{selectedMethod.Name}|{parametersString}";
+
+                  if (pathProp.stringValue != finalPath)
+                  {
+                        pathProp.stringValue = finalPath;
+                  }
+
+                  EditorGUILayout.EndVertical();
+
+                  EditorGUILayout.HelpBox("Generated path: " + finalPath, MessageType.None);
             }
 
             private void DrawGroupContent(SerializedProperty groupProperty, int groupIndex)

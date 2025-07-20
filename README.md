@@ -1,6 +1,8 @@
 # Custom Toolbar for Unity
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Release](https://img.shields.io/github/v/release/Alaxxxx/CustomToolbar?style=flat-square)](https://github.com/Alaxxxx/CustomToolbar/releases)
+[![Unity Version](https://img.shields.io/badge/Unity-2021.3%2B-green.svg)](https://unity3d.com/get-unity/download)
 
 An advanced and highly customizable toolbar extension for the Unity Editor, designed to streamline your workflow and integrate your custom tools seamlessly.
 
@@ -8,14 +10,17 @@ This project was originally inspired by the great work of [smkplus/CustomToolbar
 
 <img width="1295" height="32" alt="Screenshot_1" src="https://github.com/user-attachments/assets/62b55f11-0be6-4d7b-8fc7-86ab60c27ee4" />
 
-## Features
+## ✨ Features
 
--   **Fully Configurable:** Organize your tools into groups, enable or disable any element, and arrange them on the left or right side of the play buttons.
--   **Extensible Toolbar:** Easily create your own toolbar elements by inheriting from a simple base class.
--   **Powerful Toolbox:** Create a dropdown menu of custom shortcuts to any Unity or user-made editor window, asset, URL, or even static C# methods ("macros").
--   **Built-in Tools:** Comes with a rich set of essential tools out of the box, including scene management, screenshot utilities, play mode controls, and Git integration.
+* **Powerful Configuration:** A polished, intuitive settings window to manage every aspect of your toolbar.
+* **Group Management:** Organize your tools into groups, reorder them with simple buttons, and assign them to the left or right side of the play controls.
+* **Extensible by Design:** Easily create your own toolbar elements by inheriting from a simple base class.
+* **The Toolbox:** A fully customizable dropdown menu for shortcuts to any Unity window, project asset, URL, or even static C# methods (macros).
+* **Built-in Elements:** Comes with a rich set of essential tools out of the box, including scene management, screenshot utilities, play mode controls, and Git integration.
 
-## Installation
+## 🚀 Getting Started
+
+### Installation
 
 <details>
 <summary><strong>1. Install via Git URL (Recommended)</strong></summary>
@@ -35,10 +40,9 @@ This method installs the package directly from the GitHub repository and allows 
 <br>
 This method is great if you prefer a specific, stable version of the asset.
 
-1.  Go to the [**Releases**](https://github.com/Alaxxxx/CustomToolbar/releases) page of this repository.
-2.  Download the `.unitypackage` file from the latest release (or a specific version you want).
-3.  In your Unity project, go to **`Assets > Import Package > Custom Package...`**.
-4.  Locate the downloaded `.unitypackage` file and import it.
+1.  Go to the [**Releases**](https://github.com/Alaxxxx/CustomToolbar/releases) page.
+2.  Download the `.unitypackage` file from the latest release.
+3.  In your Unity project, go to **`Assets > Import Package > Custom Package...`** and select the downloaded file.
 </details>
 
 <details>
@@ -50,70 +54,45 @@ This method is great if you prefer a specific, stable version of the asset.
 3.  Drag and drop the main asset folder (the one containing all the scripts and resources) into the `Assets` folder of your Unity project.
 </details>
 
-## How to Use
+### How to Use
 
 Once installed, the custom toolbar will appear automatically with a default layout. All customization is done through the Project Settings window.
 
-### Configuring the Toolbar
+## ⚙️ Configuring the Toolbar
 
-To configure the toolbar, go to **`Edit > Project Settings > Custom Toolbar`**.
+All customization is done from a two-panel interface in **`Project Settings > Custom Toolbar`**.
 
-<img width="859" height="620" alt="Screen_Settings1" src="https://github.com/user-attachments/assets/c33d5876-5a3c-4e80-a3ba-4814a99419e7" />
+<img width="862" height="618" alt="Screenshot_SettingsUI" src="https://github.com/user-attachments/assets/4b4107a7-af30-47ae-9e6d-80ef0e092d97" />
 
-From this panel, you can:
-* **Manage Groups:** Create, delete, or rename groups. The group name is for your organization only.
-* **Organize Elements:** Drag and drop elements to reorder them within a group, or move them between groups.
-* **Enable/Disable:** Use the checkboxes to toggle the visibility of any group or individual element.
-* **Add New Elements:** Click the `+` button at the bottom of a group to add a new element, including any custom ones you've created.
+* **Left Panel:**
+    * View all your groups, neatly separated by **Left Side** and **Right Side**.
+    * Use the **▲/▼ buttons** to reorder groups within their sides.
+    * Use the **search bar** at the top to quickly find groups or Toolbox shortcuts.
+    * Manage your **Toolbox Shortcuts** with the same folder structure.
 
-## Toolbar Elements
+* **Right Panel:**
+    * When a group is selected, you can rename it, enable/disable it, or move it to the other side of the toolbar.
+    * Add, remove, and reorder the elements within that group.
+    * When a Toolbox shortcut is selected, use the **Shortcut Editor** to configure its action.
 
-### Version Control
-* **Git Status**: Displays all Git project inside the Unity project, the current Git branch and an indicator (`*`) for uncommitted changes. Click to quickly switch between your branches.
+## 🧰 The Toolbox: Your Shortcut Menu
 
-<img width="114" height="31" alt="Screen_Git" src="https://github.com/user-attachments/assets/54a17c9d-42ad-4f6d-9833-55e49c0b704f" />
+The Toolbox is one of the most powerful features. It's a special dropdown designed to hold all your custom shortcuts.
 
-### Utilities
-* **Screenshot**: A dropdown menu to take a high-quality screenshot of either the Game View or the Scene View, with an option to directly open the screenshots folder.
-* * **Clear PlayerPrefs**: Deletes all `PlayerPrefs` data for your project with a single click.
-* **Save Project**: Saves your current scene and any pending project changes.
+### The Advanced Shortcut Editor
 
-<img width="116" height="33" alt="Screen_Utility" src="https://github.com/user-attachments/assets/6bfbc5b6-cd9d-4ec8-b8fc-996be33f2391" />
+Instead of manually typing commands, the editor guides you:
+1.  **Select an Action Type:** Choose between opening a Window, an Asset, a URL, a GameObject, a Folder or calling a static C# Method.
+2.  **Use the Interactive Fields:** The UI adapts to your choice, providing object fields for assets, a text field for URLs, or the a Method Editor.
+3.  **The Method Editor:** Simply drag your C# script into the "Script File" field, and the editor will automatically list all available `public static` methods. Select one, and the editor will generate fields for each parameter, completely removing the guesswork.
 
-### Scene Management
-* **Scene Selection**: A dropdown to quickly open any scene located in your `Assets/Scenes` folder and its subdirectories. Scenes included in the build are marked with their build index.
-* **Start From First Scene**: Starts the game from scene 0 in your Build Settings, then automatically returns you to the scene you were editing when you exit Play Mode.
-* **Reload Scene**: Instantly reloads the currently active scene while in Play Mode.
-
-<img width="205" height="30" alt="Screen_Scene" src="https://github.com/user-attachments/assets/17e91934-6d68-4e93-83c7-5a51f3368105" />
-
-### Play Mode Controls
-* **FPS Slider**: A slider to control `Application.targetFrameRate`. Set to 0 for unlimited FPS.
-* **Time Slider**: A slider to adjust `Time.timeScale`, allowing you to slow down or speed up your game in real-time.
-
-<img width="373" height="27" alt="Screen_Control" src="https://github.com/user-attachments/assets/af77f9b1-ac61-492f-9732-ed09aa1156b6" />
-
-### Debugging & Advanced
-* **Enter Play Mode Options**: A quick access dropdown to configure Unity's "Enter Play Mode" settings, letting you disable domain and scene reloads to start Play Mode faster.
-* **Recompile**: Manually triggers a script recompilation.
-* **Reserialize All Assets**: Forces Unity to reserialize all assets in the project, which can help fix data corruption or serialization issues.
-
-<img width="231" height="29" alt="Screen_Debug" src="https://github.com/user-attachments/assets/b2f4b9e0-55ac-4f7f-83f0-eb953288add0" />
-
-### Toolbox
-* **Toolbox**: A fully customizable dropdown menu for all your favorite shortcuts. This powerful tool lets you launch any editor window, asset, URL, or even custom scripts ("macros") with a single click. (More details in its own section).
-
-<img width="47" height="33" alt="Screen_Toolbox" src="https://github.com/user-attachments/assets/76fedc84-a370-4495-a578-0748260b2b6f" />
-
-## Creating Your Own Toolbar Elements
+##  Extending the Toolbar
 
 Creating a new button or tool for the toolbar is straightforward.
 
 1.  Create a new C# script that inherits from `BaseToolbarElement`.
 2.  Implement the abstract `Name` property and the `OnDrawInToolbar()` method.
-3.  Your new element will automatically appear in the "Add Element" dropdown in the settings window.
-
-Here is a comprehensive example demonstrating how to use the various override methods available.
+3.  Your new element will automatically appear in the "Add Element" dropdown in the settings window!
 
 **Example:**
 ```csharp
@@ -121,106 +100,58 @@ using CustomToolbar.Editor.ToolbarElements;
 using UnityEditor;
 using UnityEngine;
 
-namespace Custom
+// For consistency, name your class starting with "Toolbar".
+// The settings UI will automatically remove this prefix for a cleaner display name.
+public class ToolbarMyCustomButton : BaseToolbarElement
 {
-      public class MyCustomButton : BaseToolbarElement
-      {
-            // This is optional, but you can use it to set the button's content such as icon and tooltip.
-            private GUIContent _buttonContent;
+    private GUIContent _buttonContent;
 
-            // Name is used to identify the button in the toolbar and in the settings and should be implemented.
-            protected override string Name => "My Button";
+    // The name displayed in the settings window.
+    protected override string Name => "My Custom Button";
+    
+    // The tooltip displayed when hovering over the element.
+    protected override string Tooltip => "This button logs a message to the console.";
 
-            // Tooltip is optional and can be used to provide additional information about the button.
-            protected override string Tooltip => "This is a custom button in the toolbar";
+    // Called once when the toolbar is initialized. Use it for setup.
+    public override void OnInit()
+    {
+        _buttonContent = new GUIContent("Log", this.Tooltip);
+    }
 
-            // This method is called once when the toolbar is initialized.
-            public override void OnInit()
-            {
-                  this.Width = 100; // Set the width of the button in the toolbar. Could also be set in OnDrawInToolbar.
+    // Called every frame to draw the element in the toolbar.
+    public override void OnDrawInToolbar()
+    {
+        if (GUILayout.Button(_buttonContent, GUILayout.Width(60)))
+        {
+            Debug.Log("My custom button was clicked!");
+        }
+    }
 
-                  this.Enabled = true; // This is true by default but just so that you know it. You can also set it to false if you want it to be disabled initially.
-
-                  // You can set the button content here or directly in OnDrawInToolbar.
-                  _buttonContent = new GUIContent(Name, Tooltip);
-            }
-
-            // This method is called to draw the button in the toolbar.
-            public override void OnDrawInToolbar()
-            {
-                  // This wait for a click on the button and executes the code inside if clicked.
-                  if (GUILayout.Button(_buttonContent))
-                  {
-                        // This is where you define what happens when the button is clicked.
-                        Debug.Log("My custom button was clicked!");
-                  }
-            }
-
-            public override void OnPlayModeStateChanged(PlayModeStateChange state)
-            {
-                  // This method is called when the play mode state changes.
-                  // You can use it to enable or disable the button based on the play mode state.
-                  if (state == PlayModeStateChange.EnteredPlayMode)
-                  {
-                        this.Enabled = false; // Disable the button when entering play mode.
-                  }
-                  else if (state == PlayModeStateChange.ExitingPlayMode || state == PlayModeStateChange.EnteredEditMode)
-                  {
-                        this.Enabled = true; // Enable the button when exiting play mode or entering edit mode.
-                  }
-            }
-      }
+    // Called when the editor's play mode state changes.
+    public override void OnPlayModeStateChanged(PlayModeStateChange state)
+    {
+        if (state == PlayModeStateChange.EnteredPlayMode)
+        {
+            // Example: disable the button in play mode.
+            this.Enabled = false; 
+        }
+        else if (state == PlayModeStateChange.EnteredEditMode)
+        {
+            this.Enabled = true;
+        }
+    }
 }
 ```
 
-After creating the script, Unity will recompile, and your new element will become available in the toolbar settings (`Edit > Project Settings > Custom Toolbar`).
+## Adding Your New Element
+After saving your script, Unity will recompile. Your new element is now ready to be used!
 
-Find your new element in the `+` dropdown menu at the bottom of any group and add it to your layout. It will then appear on the main toolbar.
+1. Navigate to Edit > Project Settings > Custom Toolbar.
 
-<img width="229" height="338" alt="Screen_3" src="https://github.com/user-attachments/assets/14cc2005-7f64-46dd-be2d-be3cac4d6b29" />
+2. Select the group where you want to add your new button.
 
-> **Note on Naming Conventions**
-> 
-> For consistency with the built-in elements, it's a good practice to name your class starting with `Toolbar` (e.g., `ToolbarMyCustomButton`). The settings UI will automatically remove this prefix from the display name for a cleaner look.
+3. In the right panel, click the "Add Element" button. A menu will appear with all available elements, including the one you just created.
 
-If your new element doesn't appear in the settings right away, a manual recompilation might be needed. You can use the built-in **Recompile** button for this purpose.
+4. Select your element from the list to add it to the group.
 
-And then the button will appear and respond on click.
-
-<img width="133" height="30" alt="Screen_Custom" src="https://github.com/user-attachments/assets/181be404-7300-4d8b-bcf1-9277006c5b5d" />
-
-## The Toolbox: Your Customizable Shortcut Menu
-
-The Toolbox is one of the most powerful features of CustomToolbar. It's a special dropdown menu designed to hold all your custom shortcuts, giving you instant access to any window, asset, URL, or even custom scripts ("macros") without ever leaving the toolbar.
-
-By default, the Toolbox comes with a handy shortcut to directly open its own configuration window.
-
-### Configuration
-
-All shortcuts are managed from the `Project Settings > Custom Toolbar` window, in the **Toolbox Shortcuts** section.
-
-<img width="376" height="150" alt="Screen_Toolbox2" src="https://github.com/user-attachments/assets/600cf5cf-f8c9-4d37-8b80-96823da79539" />
-
-For each shortcut, you can configure:
-
-* **Display Name:** The text that will appear in the dropdown menu.
-* **Menu (Optional):** A path to organize your shortcuts into sub-menus for better organization. For example, `Macros/Creation` will place the shortcut inside a "Creation" sub-menu, which is itself inside a "Macros" menu.
-* **Action Path:** This is the core of the shortcut. It tells the Toolbox what action to perform.
-
-<img width="851" height="730" alt="Screen_Toolbox3" src="https://github.com/user-attachments/assets/a2319570-ccc0-486a-a081-3176dca6211e" />
-
-### The Power of the Action Path
-
-The `Action Path` field uses a prefix-based system to execute different types of commands. This makes it incredibly flexible.
-
-Here is a list of all available prefixes and how to use them:
-
-| Prefix | Example | Description |
-| :--- | :--- | :--- |
-| (none) | `Window/Analysis/Profiler` | Executes a standard Unity menu item from the top menu bar. |
-| `settings:` | `settings:Project/Player` | Opens a specific page in the Project Settings window. |
-| `asset:` | `asset:Assets/Prefabs/MyPrefab.prefab` | Selects and pings an asset in the Project view. |
-| `folder:` | `folder:Assets/Art/Textures` | Pings a folder in the Project view. |
-| `url:` | `url:https://your-project-docs.com` | Opens any URL in your default web browser. |
-| `select:` | `select:/Managers/GameManager` | Finds and selects a GameObject by its path in the current scene hierarchy. |
-| `method:` | `method:MyNamespace.MyClass.MyMethod\|param1,true,10` | Executes a static C# method with **zero or more parameters**. Use `\|` to separate the method path from the parameters, and `,` to separate the parameters themselves. |
+Click "Save and Recompile". Your new button will appear on the main toolbar!

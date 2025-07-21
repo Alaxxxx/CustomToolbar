@@ -10,7 +10,8 @@ This project was originally inspired by the great work of [smkplus/CustomToolbar
 
 <br>
 
-<img width="1372" height="33" alt="Screenshot_1" src="https://github.com/user-attachments/assets/37aba9f3-9023-489a-b2c2-81274acfc632" />
+<img width="1426" height="246" alt="Screen" src="https://github.com/user-attachments/assets/bc0d239c-19eb-4a07-a2de-fd81fa383ae8" />
+
 
 <br>
 

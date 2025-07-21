@@ -8,7 +8,11 @@ An advanced and highly customizable toolbar extension for the Unity Editor, desi
 
 This project was originally inspired by the great work of [smkplus/CustomToolbar](https://github.com/smkplus/CustomToolbar) and has been significantly expanded and refactored with a more robust architecture and many additional features.
 
-<img width="1295" height="32" alt="Screenshot_1" src="https://github.com/user-attachments/assets/62b55f11-0be6-4d7b-8fc7-86ab60c27ee4" />
+<br>
+
+<img width="1372" height="33" alt="Screenshot_1" src="https://github.com/user-attachments/assets/37aba9f3-9023-489a-b2c2-81274acfc632" />
+
+<br>
 
 ## ✨ Features
 
@@ -16,7 +20,9 @@ This project was originally inspired by the great work of [smkplus/CustomToolbar
 * **Group Management:** Organize your tools into groups, reorder them with simple buttons, and assign them to the left or right side of the play controls.
 * **Extensible by Design:** Easily create your own toolbar elements by inheriting from a simple base class.
 * **The Toolbox:** A fully customizable dropdown menu for shortcuts to any Unity window, project asset, URL, or even static C# methods (macros).
-* **Built-in Elements:** Comes with a rich set of essential tools out of the box, including scene management, screenshot utilities, play mode controls, and Git integration.
+* **Built-in Elements:** Comes with a rich set of essential tools out of the box, ready to be added to your toolbar.
+
+<br>
 
 ## 🚀 Getting Started
 
@@ -58,33 +64,100 @@ This method is great if you prefer a specific, stable version of the asset.
 
 Once installed, the custom toolbar will appear automatically with a default layout. All customization is done through the Project Settings window.
 
+<br>
+
 ## ⚙️ Configuring the Toolbar
 
 All customization is done from a two-panel interface in **`Project Settings > Custom Toolbar`**.
 
-<img width="862" height="618" alt="Screenshot_SettingsUI" src="https://github.com/user-attachments/assets/4b4107a7-af30-47ae-9e6d-80ef0e092d97" />
+<img width="865" height="618" alt="Screenshot_Settings" src="https://github.com/user-attachments/assets/e92ffde0-55e5-47b3-b540-903a5909c478" />
 
 * **Left Panel:**
     * View all your groups, neatly separated by **Left Side** and **Right Side**.
     * Use the **▲/▼ buttons** to reorder groups within their sides.
     * Use the **search bar** at the top to quickly find groups or Toolbox shortcuts.
-    * Manage your **Toolbox Shortcuts** with the same folder structure.
+    * Manage your **Toolbox Shortcuts** which can be organized into sub-menus.
 
 * **Right Panel:**
     * When a group is selected, you can rename it, enable/disable it, or move it to the other side of the toolbar.
     * Add, remove, and reorder the elements within that group.
     * When a Toolbox shortcut is selected, use the **Shortcut Editor** to configure its action.
+ 
+<br>
 
-## 🧰 The Toolbox: Your Shortcut Menu
+  ## 🧰 Built-in Elements
 
-The Toolbox is one of the most powerful features. It's a special dropdown designed to hold all your custom shortcuts.
+Here is a list of the tools included with the package, ready to be added to your toolbar.
+
+<details>
+<summary><strong>Scene Management</strong></summary>
+<br>
+
+* **Scene Selection:** A dropdown that lists all scenes from `Assets/Scenes/`, allowing you to open them quickly. It also indicates which scenes are in the build settings.
+* **Start From First Scene:** Starts Play Mode from the first scene listed in your Build Settings, then returns you to the original scene when you exit.
+* **Reload Scene:** A button to reload the currently active scene while in Play Mode.
+* **Scene Bookmarks:** Save and quickly navigate to specific camera positions in your scene. A manager window allows you to add, delete, reorder, and generate thumbnails for your bookmarks.
+
+</details>
+
+<details>
+<summary><strong>Development & Debugging</strong></summary>
+<br>
+
+* **Find Missing References:** Scans the active scene for missing component references and displays them in an organized, user-friendly window.
+* **Clear PlayerPrefs:** Deletes all data saved in PlayerPrefs with a confirmation dialog to prevent accidental data loss.
+* **Recompile Scripts:** Manually trigger a script compilation.
+* **Reserialize All Assets:** Forces a reserialization of all assets in the project. Useful for fixing serialization errors or after a Unity upgrade.
+* **Play Mode Options:** A dropdown to configure the "Enter Play Mode" settings, allowing you to disable domain/scene reloads for faster iteration.
+
+</details>
+
+<details>
+<summary><strong>Utilities</strong></summary>
+<br>
+
+* **Save Project:** A single button to save both the current scene(s) and all modified project assets.
+* **Git Status:** If your project is a Git repository, this shows the current branch and indicates if there are uncommitted changes. It also allows you to switch between local branches.
+* **Screenshot:** A dropdown menu to capture the Game View or Scene View and save it to a `Screenshots` folder. It also provides a shortcut to open this folder.
+* **FPS Slider:** Controls the application's target frame rate (`Application.targetFrameRate`).
+* **Timescale Slider:** Controls the game's speed (`Time.timeScale`) during play mode, perfect for slow-motion analysis or fast-forwarding.
+* **Toolbox:** Your personal, customizable dropdown menu for shortcuts.
+
+</details>
+
+<br>
+
+## 🧰 The Toolbox: Your Ultimate Shortcut Menu
+
+The Toolbox is one of the most powerful features of Custom Toolbar. It's a special, fully customizable dropdown menu designed to hold all your essential shortcuts. Instead of navigating through complex menus, you can access your most-used windows, assets, tools, and even custom C# methods with a single click.
+
+<img width="213" height="76" alt="Capture d'écran 2025-07-21 094324" src="https://github.com/user-attachments/assets/df7f30e8-55d8-4fd1-91d3-38579fe2d4f8" />
+
+<br>
 
 ### The Advanced Shortcut Editor
 
-Instead of manually typing commands, the editor guides you:
-1.  **Select an Action Type:** Choose between opening a Window, an Asset, a URL, a GameObject, a Folder or calling a static C# Method.
-2.  **Use the Interactive Fields:** The UI adapts to your choice, providing object fields for assets, a text field for URLs, or the a Method Editor.
-3.  **The Method Editor:** Simply drag your C# script into the "Script File" field, and the editor will automatically list all available `public static` methods. Select one, and the editor will generate fields for each parameter, completely removing the guesswork.
+Configuring shortcuts is made incredibly simple thanks to the **Advanced Shortcut Editor**. Instead of forcing you to manually type commands and paths, the editor provides a guided, context-aware interface that adapts to the type of shortcut you want to create.
+
+1.  **Select an Action Type:** First, choose what you want your shortcut to do. The available actions are:
+    * **Window:** Opens any built-in or custom Unity Editor window (e.g., `Project Settings`, `Animation`, `Profiler`). A browser is included to help you find the exact menu path.
+    * **Project Asset:** Instantly opens or highlights any asset in your project (e.g., a specific prefab, a material, a scene file). Simply drag and drop the asset into the object field.
+    * **Project Folder:** Pings a specific folder in your Project window, allowing you to navigate to it instantly.
+    * **URL:** Opens a web link in your default browser. Perfect for documentation, bug trackers, or team resources.
+    * **GameObject:** Selects and pings a specific GameObject in the current scene's hierarchy.
+    * **Method:** Calls a static C# method from any script in your project. This is perfect for creating custom tools and macros.
+
+2.  **Use the Interactive Fields:** Based on your choice, the UI adapts to give you the right fields. You'll get an object field for assets and GameObjects, a simple text field for URLs, and the powerful Method Editor for C# methods.
+
+3.  **Unleash the Power of the Method Editor:** The "Method" action type transforms the Toolbox into a powerful script runner.
+    * Simply drag your C# script file into the "Script File" field.
+    * The editor will automatically inspect the script and list all available `public static` methods.
+    * Once you select a method, the editor generates fields for each of its parameters (`int`, `float`, `string`, `bool`, and enums are supported).
+    * This removes all the guesswork and potential for typos, allowing you to create complex macro shortcuts with ease.
+  
+<img width="860" height="618" alt="Capture d'écran 2025-07-21 094307" src="https://github.com/user-attachments/assets/2520f541-ec91-43e9-8175-3675679e3565" />
+
+<br>
 
 ##  Extending the Toolbar
 
@@ -142,6 +215,8 @@ public class ToolbarMyCustomButton : BaseToolbarElement
     }
 }
 ```
+
+<br>
 
 ## Adding Your New Element
 After saving your script, Unity will recompile. Your new element is now ready to be used!

@@ -1,12 +1,12 @@
-﻿using CustomToolbar.Editor.Core;
-using System.Collections.Generic;
-using CustomToolbar.Editor.ToolbarElements.Data;
-using CustomToolbar.Editor.ToolbarElements.Views;
+﻿using System.Collections.Generic;
+using CustomToolbar.Editor.Core;
+using CustomToolbar.Editor.ToolbarElements.MissingReferences.Data;
+using CustomToolbar.Editor.ToolbarElements.MissingReferences.Window;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace CustomToolbar.Editor.ToolbarElements
+namespace CustomToolbar.Editor.ToolbarElements.MissingReferences
 {
       sealed internal class ToolbarFindMissingReferences : BaseToolbarElement
       {

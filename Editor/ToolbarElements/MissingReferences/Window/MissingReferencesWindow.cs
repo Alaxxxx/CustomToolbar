@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using CustomToolbar.Editor.ToolbarElements.Data;
+using CustomToolbar.Editor.ToolbarElements.MissingReferences.Data;
 using UnityEditor;
 using UnityEngine;
 
-namespace CustomToolbar.Editor.ToolbarElements.Views
+namespace CustomToolbar.Editor.ToolbarElements.MissingReferences.Window
 {
       sealed internal class MissingReferencesWindow : EditorWindow
       {
@@ -86,7 +86,7 @@ namespace CustomToolbar.Editor.ToolbarElements.Views
 
             private void DrawHeader()
             {
-                  Rect headerRect = GUILayoutUtility.GetRect(position.width, 40);
+                  Rect headerRect = GUILayoutUtility.GetRect(this.position.width, 40);
                   GUI.DrawTexture(headerRect, _headerBackground, ScaleMode.StretchToFill);
                   int totalProblems = _results.Values.Sum(static list => list.Count);
                   string headerText = totalProblems > 0 ? $"{totalProblems} Issue(s) Found on {_results.Count} Object(s)" : "No Missing References!";

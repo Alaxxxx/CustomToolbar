@@ -1,4 +1,4 @@
-﻿namespace CustomToolbar.Editor.ToolbarElements.Data
+﻿namespace CustomToolbar.Editor.ToolbarElements.Favorites.Data
 {
       [System.Serializable]
       public class FavoriteItem

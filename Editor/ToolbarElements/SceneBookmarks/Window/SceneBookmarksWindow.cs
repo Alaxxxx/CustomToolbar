@@ -1,8 +1,8 @@
-﻿using CustomToolbar.Editor.ToolbarElements.Data;
+﻿using CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Data;
 using UnityEditor;
 using UnityEngine;
 
-namespace CustomToolbar.Editor.ToolbarElements.Views
+namespace CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
 {
       public sealed class SceneBookmarksWindow : EditorWindow
       {

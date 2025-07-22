@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using CustomToolbar.Editor.Core;
-using CustomToolbar.Editor.ToolbarElements.Data;
-using CustomToolbar.Editor.ToolbarElements.Views;
+using CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Data;
+using CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window;
 using UnityEditor;
 using UnityEngine;
 
-namespace CustomToolbar.Editor.ToolbarElements
+namespace CustomToolbar.Editor.ToolbarElements.SceneBookmarks
 {
       sealed internal class ToolbarSceneBookmarks : BaseToolbarElement
       {

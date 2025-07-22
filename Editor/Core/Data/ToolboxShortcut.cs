@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CustomToolbar.Editor.Settings.Data
+namespace CustomToolbar.Editor.Core.Data
 {
       [Serializable]
       public class ToolboxShortcut

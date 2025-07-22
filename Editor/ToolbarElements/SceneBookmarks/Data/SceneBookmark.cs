@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace CustomToolbar.Editor.ToolbarElements.Data
+namespace CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Data
 {
       [Serializable]
       public class SceneBookmark

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using CustomToolbar.Editor.Core.Data;
 using CustomToolbar.Editor.ToolbarElements;
 using UnityEditor;
 using UnityEditor.Compilation;
@@ -131,7 +132,7 @@ namespace CustomToolbar.Editor.Settings
 
                         if (group.FindPropertyRelative("groupName").stringValue.IndexOf(_searchText, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
-                              if ((Data.ToolbarSide)group.FindPropertyRelative("side").enumValueIndex == Data.ToolbarSide.Left)
+                              if ((ToolbarSide)group.FindPropertyRelative("side").enumValueIndex == ToolbarSide.Left)
                               {
                                     leftGroups.Add((group, i));
                               }
@@ -637,8 +638,8 @@ namespace CustomToolbar.Editor.Settings
                   EditorGUILayout.EndHorizontal();
 
                   SerializedProperty sideProp = groupProperty.FindPropertyRelative("side");
-                  var currentSide = (Data.ToolbarSide)sideProp.enumValueIndex;
-                  string switchButtonText = $"Move to {(currentSide == Data.ToolbarSide.Left ? "Right" : "Left")} Side";
+                  var currentSide = (ToolbarSide)sideProp.enumValueIndex;
+                  string switchButtonText = $"Move to {(currentSide == ToolbarSide.Left ? "Right" : "Left")} Side";
 
                   if (GUILayout.Button(switchButtonText))
                   {

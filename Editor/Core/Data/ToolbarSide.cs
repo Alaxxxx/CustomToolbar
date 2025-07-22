@@ -1,4 +1,4 @@
-﻿namespace CustomToolbar.Editor.Settings.Data
+﻿namespace CustomToolbar.Editor.Core.Data
 {
       public enum ToolbarSide
       {

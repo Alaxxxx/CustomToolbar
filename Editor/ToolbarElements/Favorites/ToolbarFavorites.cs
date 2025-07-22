@@ -1,9 +1,9 @@
 ﻿using CustomToolbar.Editor.Core;
-using CustomToolbar.Editor.ToolbarElements.Views;
+using CustomToolbar.Editor.ToolbarElements.Favorites.Window;
 using UnityEditor;
 using UnityEngine;
 
-namespace CustomToolbar.Editor.ToolbarElements
+namespace CustomToolbar.Editor.ToolbarElements.Favorites
 {
       sealed internal class ToolbarFavorites : BaseToolbarElement
       {

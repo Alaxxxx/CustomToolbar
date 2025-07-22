@@ -1,6 +1,9 @@
 ﻿using System.IO;
-using CustomToolbar.Editor.Settings.Data;
+using CustomToolbar.Editor.Core.Data;
 using CustomToolbar.Editor.ToolbarElements;
+using CustomToolbar.Editor.ToolbarElements.Favorites;
+using CustomToolbar.Editor.ToolbarElements.MissingReferences;
+using CustomToolbar.Editor.ToolbarElements.SceneBookmarks;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,13 +15,10 @@ namespace CustomToolbar.Editor.Settings
       /// </summary>
       internal static class ToolbarSettings
       {
-            // The asset path where the toolbar configuration will be stored.
             private const string ConfigAssetPath = "Assets/Settings/CustomToolbar/CustomToolbarSettings.asset";
 
-            // Cached reference to the loaded configuration instance.
             private static ToolbarConfiguration instance;
 
-            // Public property providing singleton-like access to the toolbar configuration.
             public static ToolbarConfiguration Instance
             {
                   get
@@ -29,58 +29,28 @@ namespace CustomToolbar.Editor.Settings
                   }
             }
 
-            // Loads an existing configuration from disk or creates a new one if none exists.
             private static ToolbarConfiguration LoadOrCreateConfiguration()
             {
                   // Attempt to load the existing configuration from the predefined asset path
                   var config = AssetDatabase.LoadAssetAtPath<ToolbarConfiguration>(ConfigAssetPath);
 
-                  // If configuration exists, return it
                   if (config != null)
                   {
                         return config;
                   }
 
-                  // Create a new configuration instance using Unity's ScriptableObject system
                   var newConfig = ScriptableObject.CreateInstance<ToolbarConfiguration>();
 
-                  // Set the package root path for relative path calculations
-                  newConfig.packageRootPath = FindRootPath();
-
-                  // Populate the new configuration with default toolbar elements
                   PopulateWithDefaultData(newConfig);
 
-                  // Ensure the directory structure exists before creating the asset
                   Directory.CreateDirectory(Path.GetDirectoryName(ConfigAssetPath)!);
 
-                  // Create the ScriptableObject asset at the specified path
                   AssetDatabase.CreateAsset(newConfig, ConfigAssetPath);
 
-                  // Save the asset and refresh the AssetDatabase to make it visible in the editor
                   AssetDatabase.SaveAssets();
                   AssetDatabase.Refresh();
 
                   return newConfig;
-            }
-
-            // Attempts to automatically determine the root path of the CustomToolbar package.
-            private static string FindRootPath()
-            {
-                  // Search for the ToolbarSettingsProvider script using Unity's GUID system
-                  string[] guids = AssetDatabase.FindAssets("t:script ToolbarSettingsProvider");
-
-                  // If we found at least one matching script
-                  if (guids.Length > 0)
-                  {
-                        // Convert the first GUID to an actual file path
-                        string path = AssetDatabase.GUIDToAssetPath(guids[0]);
-
-                        // Navigate up the directory hierarchy to find the package root
-                        return Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(path)));
-                  }
-
-                  // Fallback path if automatic detection fails
-                  return "Assets/CustomToolbar";
             }
 
             // Used to populate the configuration with default data

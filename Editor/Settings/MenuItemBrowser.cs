@@ -12,22 +12,33 @@ namespace CustomToolbar.Editor.Settings
       {
             sealed private class Node
             {
-                  public string Name;
-                  public string Path;
-                  public readonly List<Node> Children = new();
-                  public bool IsExpanded;
+                  public string Name { get; set; }
+                  public string Path { get; set; }
+                  public List<Node> Children { get; } = new();
+                  public bool IsExpanded { get; set; }
             }
 
-            private Action<string> _onItemSelected;
-            private Node _rootNode;
-            private Vector2 _scrollPosition;
-            private string _searchText = "";
+            // Constants
+            private const float HeaderHeight = 40f;
+            private const float RowHeight = 22f;
+            private const float IndentWidth = 15f;
 
+            // Regex cache
+            private readonly static Regex CleanNameRegex = new(@"\s+[_%#&].*$", RegexOptions.Compiled);
+
+            // Fields
+            private Node _rootNode;
+            private string _searchText = "";
+            private Vector2 _scrollPosition;
+            private Rect _hoveredRect;
+            private Action<string> _onItemSelected;
+
+            // Styles & Colors
             private GUIStyle _folderStyle;
             private GUIStyle _itemStyle;
             private GUIStyle _searchFieldStyle;
-            private readonly Color _hoverColor = new(0.35f, 0.35f, 0.35f, 1f);
-            private readonly Color _headerColor = new(0.22f, 0.22f, 0.22f, 1f);
+            private Color _hoverColor;
+            private Color _headerColor;
 
             public static void Show(Action<string> onItemSelected)
             {
@@ -36,73 +47,30 @@ namespace CustomToolbar.Editor.Settings
                   window.minSize = new Vector2(400, 500);
             }
 
+#region Unity
+
             private void OnEnable()
             {
-                  InitStyles();
-
-                  _rootNode = new Node { Name = "Root" };
-
-                  Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-                  var menuItems = (from assembly in assemblies
-                              from type in assembly.GetTypes()
-                              from method in type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-                              select method.GetCustomAttributes(typeof(MenuItem), false)
-                              into attributes
-                              where attributes.Length > 0
-                              from MenuItem item in attributes
-                              where !string.IsNullOrEmpty(item.menuItem) && !item.menuItem.StartsWith("CONTEXT/", StringComparison.Ordinal) &&
-                                    !item.menuItem.StartsWith("internal:", StringComparison.Ordinal)
-                              select item.menuItem).ToList();
-
-                  foreach (string path in menuItems.Distinct().OrderBy(static s => s))
-                  {
-                        string[] parts = path.Split('/');
-                        Node currentNode = _rootNode;
-
-                        for (int i = 0; i < parts.Length; i++)
-                        {
-                              string cleanName = CleanMenuItemName(parts[i]);
-                              Node child = currentNode.Children.Find(c => c.Name == cleanName);
-
-                              if (child == null)
-                              {
-                                    child = new Node { Name = cleanName };
-
-                                    if (i == parts.Length - 1)
-                                    {
-                                          child.Path = path;
-                                    }
-
-                                    currentNode.Children.Add(child);
-                              }
-
-                              currentNode = child;
-                        }
-                  }
+                  _rootNode = BuildMenuItemTree();
             }
 
             private void OnGUI()
             {
-                  var headerRect = new Rect(0, 0, position.width, 40);
-                  EditorGUI.DrawRect(headerRect, _headerColor);
-
-                  GUILayout.BeginArea(headerRect);
-                  GUILayout.Space(10);
-                  _searchText = EditorGUILayout.TextField(_searchText, _searchFieldStyle, GUILayout.ExpandWidth(true), GUILayout.Height(20), GUILayout.ExpandWidth(true));
-                  GUILayout.EndArea();
-
-                  var contentRect = new Rect(0, 40, position.width, position.height - 40);
-                  GUILayout.BeginArea(contentRect);
-                  _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
-
-                  foreach (Node node in _rootNode.Children)
+                  if (_folderStyle == null)
                   {
-                        DrawNode(node, 0);
+                        InitStyles();
                   }
 
-                  EditorGUILayout.EndScrollView();
-                  GUILayout.EndArea();
+                  DrawHeader();
+
+                  if (Event.current.type == EventType.Layout)
+                  {
+                        _hoveredRect = Rect.zero;
+                  }
+
+                  GUILayout.Space(HeaderHeight);
+
+                  DrawContent();
 
                   if (Event.current.type == EventType.MouseMove)
                   {
@@ -110,46 +78,56 @@ namespace CustomToolbar.Editor.Settings
                   }
             }
 
-            private void InitStyles()
+#endregion
+
+#region Drawing
+
+            private void DrawHeader()
             {
-                  _folderStyle = new GUIStyle(EditorStyles.foldout)
-                  {
-                              fontStyle = FontStyle.Bold,
-                              fontSize = 13,
-                              padding = new RectOffset(15, 0, 3, 3),
-                              margin = new RectOffset(0, 0, 2, 2)
-                  };
+                  var headerRect = new Rect(0, 0, position.width, HeaderHeight);
+                  EditorGUI.DrawRect(headerRect, _headerColor);
 
-                  _itemStyle = new GUIStyle(EditorStyles.label)
-                  {
-                              padding = new RectOffset(15, 0, 3, 3),
-                              margin = new RectOffset(0, 0, 2, 2)
-                  };
+                  var searchRect = new Rect(headerRect.x + 10, headerRect.y + 10, headerRect.width - 20, 20);
+                  _searchText = EditorGUI.TextField(searchRect, _searchText, _searchFieldStyle);
+            }
 
-                  _searchFieldStyle = new GUIStyle(EditorStyles.toolbarSearchField);
+            private void DrawContent()
+            {
+                  using var scrollView = new GUILayout.ScrollViewScope(_scrollPosition);
+
+                  _scrollPosition = scrollView.scrollPosition;
+
+                  foreach (Node node in _rootNode.Children)
+                  {
+                        DrawNode(node, 0);
+                  }
             }
 
             private void DrawNode(Node node, int indentLevel)
             {
-                  if (!string.IsNullOrEmpty(_searchText) && !IsNodeVisibleInSearch(node))
+                  if (!IsNodeVisibleInSearch(node))
                   {
                         return;
                   }
 
-                  Rect fullRect = EditorGUILayout.GetControlRect(false, 22);
+                  Rect rowRect = EditorGUILayout.GetControlRect(false, RowHeight);
 
-                  fullRect.x += indentLevel * 15;
-                  fullRect.width -= indentLevel * 15;
-
-                  if (fullRect.Contains(Event.current.mousePosition))
+                  if (rowRect.Contains(Event.current.mousePosition))
                   {
-                        EditorGUI.DrawRect(fullRect, _hoverColor);
+                        _hoveredRect = rowRect;
                   }
 
-                  if (node.Children.Count > 0 && node.Path == null)
+                  if (Event.current.type == EventType.Repaint && _hoveredRect == rowRect)
+                  {
+                        EditorGUI.DrawRect(rowRect, _hoverColor);
+                  }
+
+                  var controlRect = new Rect(rowRect.x + indentLevel * IndentWidth, rowRect.y, rowRect.width - indentLevel * IndentWidth, rowRect.height);
+
+                  if (node.Children.Any())
                   {
                         bool isExpanded = !string.IsNullOrEmpty(_searchText) || node.IsExpanded;
-                        node.IsExpanded = EditorGUI.Foldout(fullRect, isExpanded, node.Name, true, _folderStyle);
+                        node.IsExpanded = EditorGUI.Foldout(controlRect, isExpanded, node.Name, true, _folderStyle);
 
                         if (node.IsExpanded)
                         {
@@ -161,20 +139,92 @@ namespace CustomToolbar.Editor.Settings
                   }
                   else
                   {
-                        if (GUI.Button(fullRect, node.Name, _itemStyle))
+                        if (GUI.Button(controlRect, node.Name, _itemStyle))
                         {
                               ItemSelected(node.Path);
                         }
                   }
             }
 
-            private static string CleanMenuItemName(string name)
+            private void InitStyles()
             {
-                  return Regex.Replace(name, @"\s+[_%#&].*$", "").Trim();
+                  _folderStyle = new GUIStyle(EditorStyles.foldout)
+                  {
+                              fontStyle = FontStyle.Bold,
+                              fontSize = 13,
+                              padding = new RectOffset(15, 0, 3, 3),
+                  };
+
+                  _itemStyle = new GUIStyle(EditorStyles.label)
+                  {
+                              padding = new RectOffset(15, 0, 3, 3),
+                  };
+
+                  _searchFieldStyle = new GUIStyle(EditorStyles.toolbarSearchField);
+
+                  _hoverColor = new Color(0.3f, 0.3f, 0.3f, 1f);
+                  _headerColor = new Color(0.22f, 0.22f, 0.22f, 1f);
+            }
+
+#endregion
+
+            private static Node BuildMenuItemTree()
+            {
+                  var root = new Node { Name = "Root" };
+                  IEnumerable<string> menuItemPaths = GetAllValidMenuItems();
+
+                  foreach (string path in menuItemPaths.Distinct().OrderBy(static s => s))
+                  {
+                        AddPathToTree(root, path);
+                  }
+
+                  return root;
+            }
+
+            private static void AddPathToTree(Node root, string path)
+            {
+                  Node currentNode = root;
+                  string[] parts = path.Split('/');
+
+                  for (int i = 0; i < parts.Length; i++)
+                  {
+                        string cleanName = CleanMenuItemName(parts[i]);
+                        Node child = currentNode.Children.Find(c => c.Name == cleanName);
+
+                        if (child == null)
+                        {
+                              child = new Node { Name = cleanName };
+
+                              if (i == parts.Length - 1)
+                              {
+                                    child.Path = path;
+                              }
+
+                              currentNode.Children.Add(child);
+                        }
+
+                        currentNode = child;
+                  }
+            }
+
+            private static IEnumerable<string> GetAllValidMenuItems()
+            {
+                  return AppDomain.CurrentDomain.GetAssemblies()
+                                  .SelectMany(static assembly => assembly.GetTypes())
+                                  .SelectMany(static type => type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+                                  .SelectMany(static method => method.GetCustomAttributes(typeof(MenuItem), false).Cast<MenuItem>())
+                                  .Select(static item => item.menuItem)
+                                  .Where(static path => !string.IsNullOrEmpty(path) && !path.StartsWith("CONTEXT/", StringComparison.Ordinal) &&
+                                                        !path.StartsWith("internal:", StringComparison.Ordinal));
             }
 
             private bool IsNodeVisibleInSearch(Node node)
             {
+                  if (string.IsNullOrEmpty(_searchText))
+                  {
+                        return true;
+                  }
+
                   if (node.Name.IndexOf(_searchText, StringComparison.OrdinalIgnoreCase) >= 0)
                   {
                         return true;
@@ -191,7 +241,12 @@ namespace CustomToolbar.Editor.Settings
             private void ItemSelected(string path)
             {
                   _onItemSelected?.Invoke(path);
-                  this.Close();
+                  Close();
+            }
+
+            private static string CleanMenuItemName(string name)
+            {
+                  return CleanNameRegex.Replace(name, "").Trim();
             }
       }
 }

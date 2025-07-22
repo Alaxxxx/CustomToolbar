@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace CustomToolbar.Editor.Settings.Data
+namespace CustomToolbar.Editor.Core.Data
 {
       [Serializable]
       public class ToolbarGroup

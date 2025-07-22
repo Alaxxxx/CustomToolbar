@@ -123,6 +123,7 @@ Here is a list of the tools included with the package, ready to be added to your
 * **FPS Slider:** Controls the application's target frame rate (`Application.targetFrameRate`).
 * **Timescale Slider:** Controls the game's speed (`Time.timeScale`) during play mode, perfect for slow-motion analysis or fast-forwarding.
 * **Toolbox:** Your personal, customizable dropdown menu for shortcuts.
+* **Favorites:** Opens a dedicated window to manage custom lists of your most-used assets. 
 
 </details>
 

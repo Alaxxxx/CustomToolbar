@@ -123,6 +123,7 @@ namespace CustomToolbar.Editor.Settings
                   // Groupe 5: Toolbox
                   var toolboxGroup = new ToolbarGroup { groupName = "Toolbox", side = ToolbarSide.Right };
                   toolboxGroup.elements.Add(new ToolbarElement { name = typeof(ToolbarToolbox).AssemblyQualifiedName });
+                  toolboxGroup.elements.Add(new ToolbarElement { name = typeof(ToolbarFavorites).AssemblyQualifiedName });
                   config.groups.Add(toolboxGroup);
             }
       }

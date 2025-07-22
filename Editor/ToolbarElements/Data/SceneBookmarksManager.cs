@@ -7,7 +7,7 @@ namespace CustomToolbar.Editor.ToolbarElements.Data
 {
       public sealed class SceneBookmarksManager : ScriptableObject
       {
-            private const string AssetPath = "Assets/Settings/CustomToolbarSceneBookmarks.asset";
+            private const string AssetPath = "Assets/Settings/CustomToolbar/SceneBookmarks.asset";
 
             public List<SceneBookmark> bookmarks = new();
 

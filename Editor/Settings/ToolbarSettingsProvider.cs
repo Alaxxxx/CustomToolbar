@@ -727,6 +727,19 @@ namespace CustomToolbar.Editor.Settings
 
             private void ShowAddElementMenu(SerializedProperty elementsProperty)
             {
+                  var usedElementNames = new HashSet<string>();
+                  SerializedProperty groupsProperty = _serializedConfig.FindProperty("groups");
+
+                  for (int i = 0; i < groupsProperty.arraySize; i++)
+                  {
+                        SerializedProperty elements = groupsProperty.GetArrayElementAtIndex(i).FindPropertyRelative("elements");
+
+                        for (int j = 0; j < elements.arraySize; j++)
+                        {
+                              usedElementNames.Add(elements.GetArrayElementAtIndex(j).FindPropertyRelative("name").stringValue);
+                        }
+                  }
+
                   var menu = new GenericMenu();
                   TypeCache.TypeCollection elementTypes = TypeCache.GetTypesDerivedFrom<BaseToolbarElement>();
 
@@ -737,15 +750,27 @@ namespace CustomToolbar.Editor.Settings
                               continue;
                         }
 
-                        menu.AddItem(new GUIContent(type.Name.Replace("Toolbar", "", StringComparison.Ordinal)), false, () =>
+                        bool isUsed = usedElementNames.Contains(type.AssemblyQualifiedName);
+
+                        var content = new GUIContent(type.Name.Replace("Toolbar", "", StringComparison.Ordinal));
+
+                        if (isUsed)
                         {
-                              int newIndex = elementsProperty.arraySize;
-                              elementsProperty.InsertArrayElementAtIndex(newIndex);
-                              SerializedProperty newElementProp = elementsProperty.GetArrayElementAtIndex(newIndex);
-                              newElementProp.FindPropertyRelative("name").stringValue = type.AssemblyQualifiedName;
-                              newElementProp.FindPropertyRelative("isEnabled").boolValue = true;
-                              _serializedConfig.ApplyModifiedProperties();
-                        });
+                              content.text += " (Used)";
+                              menu.AddDisabledItem(content);
+                        }
+                        else
+                        {
+                              menu.AddItem(content, false, () =>
+                              {
+                                    int newIndex = elementsProperty.arraySize;
+                                    elementsProperty.InsertArrayElementAtIndex(newIndex);
+                                    SerializedProperty newElementProp = elementsProperty.GetArrayElementAtIndex(newIndex);
+                                    newElementProp.FindPropertyRelative("name").stringValue = type.AssemblyQualifiedName;
+                                    newElementProp.FindPropertyRelative("isEnabled").boolValue = true;
+                                    _serializedConfig.ApplyModifiedProperties();
+                              });
+                        }
                   }
 
                   menu.ShowAsContext();

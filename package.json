@@ -1,6 +1,6 @@
 {
     "name": "com.opalstudio.customtoolbar",
-    "version": "2.4.0",
+    "version": "2.4.1",
     "displayName": "CustomToolbar",
     "description": "A Unity package that provides a custom toolbar for the Unity Editor, allowing developers to create and manage custom editor tools and functionalities.",
     "unity": "2021.3",

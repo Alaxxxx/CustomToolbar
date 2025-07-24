@@ -25,6 +25,7 @@ namespace CustomToolbar.Editor.Settings
 
             // Holds the currently selected object in the settings GUI.
             private object _selectedObject;
+            private object _lastSelectedObject;
 
             // Scroll position for the left panel, used to maintain the scroll state during GUI rendering.
             private Vector2 _leftPanelScrollPos;
@@ -360,8 +361,24 @@ namespace CustomToolbar.Editor.Settings
                   }
             }
 
-            private void DrawAdvancedShortcutEditor(SerializedProperty shortcutProp)
+             private void DrawAdvancedShortcutEditor(SerializedProperty shortcutProp)
             {
+                  if (_selectedObject != _lastSelectedObject)
+                  {
+                        if (_selectedObject is SerializedProperty { type: "ToolboxShortcut" } prop)
+                        {
+                              string path = prop.FindPropertyRelative("menuItemPath").stringValue;
+
+                              if (path.StartsWith("method:", StringComparison.Ordinal))
+                              {
+                                    ParseAndSetupMethodEditor(path);
+                              }
+                        }
+
+                        _lastSelectedObject = _selectedObject;
+                  }
+
+
                   EditorGUILayout.BeginHorizontal();
 
                   EditorGUILayout.PropertyField(shortcutProp.FindPropertyRelative("displayName"),
@@ -378,7 +395,7 @@ namespace CustomToolbar.Editor.Settings
                   EditorGUILayout.Space();
 
                   SerializedProperty pathProp = shortcutProp.FindPropertyRelative("menuItemPath");
-                  string path = pathProp.stringValue;
+                  string currentPath = pathProp.stringValue;
 
                   string[] actionTypes = { "Window", "Project Asset", "Project Folder", "URL", "GameObject", "Method" };
                   string[] prefixes = { "", "asset:", "folder:", "url:", "select:", "method:" };
@@ -387,7 +404,7 @@ namespace CustomToolbar.Editor.Settings
 
                   for (int i = 1; i < prefixes.Length; i++)
                   {
-                        if (path.StartsWith(prefixes[i], StringComparison.OrdinalIgnoreCase))
+                        if (currentPath.StartsWith(prefixes[i], StringComparison.OrdinalIgnoreCase))
                         {
                               currentTypeIndex = i;
 
@@ -400,9 +417,16 @@ namespace CustomToolbar.Editor.Settings
                   if (newTypeIndex != currentTypeIndex)
                   {
                         pathProp.stringValue = prefixes[newTypeIndex];
+
+                        if (newTypeIndex != 5)
+                        {
+                              _selectedScript = null;
+                              _methodParameters = Array.Empty<object>();
+                              _methodNames = Array.Empty<string>();
+                        }
                   }
 
-                  string value = path.Contains(":", StringComparison.OrdinalIgnoreCase) ? path.Substring(path.IndexOf(':') + 1) : path;
+                  string value = currentPath.Contains(":", StringComparison.OrdinalIgnoreCase) ? currentPath.Substring(currentPath.IndexOf(':') + 1) : currentPath;
 
                   switch (newTypeIndex)
                   {
@@ -460,7 +484,7 @@ namespace CustomToolbar.Editor.Settings
                               EditorGUILayout.LabelField(new GUIContent("Menu Path", "The path to the window in the main menu."));
                               EditorGUILayout.BeginHorizontal();
 
-                              EditorGUILayout.TextField(path, GUI.skin.textField);
+                              EditorGUILayout.PropertyField(pathProp, GUIContent.none);
 
                               if (GUILayout.Button("Browse...", GUILayout.Width(80)))
                               {
@@ -500,6 +524,95 @@ namespace CustomToolbar.Editor.Settings
                   }
 
                   GUI.backgroundColor = originalColor;
+            }
+
+            private void ParseAndSetupMethodEditor(string path)
+            {
+                  _selectedScript = null;
+                  _methodParameters = Array.Empty<object>();
+                  _methodNames = Array.Empty<string>();
+                  _selectedMethodIndex = -1;
+
+                  try
+                  {
+                        string methodData = path.Substring("method:".Length);
+                        string[] parts = methodData.Split(new[] { '|' }, 2);
+                        string methodPath = parts[0];
+                        string paramsString = parts.Length > 1 ? parts[1] : null;
+
+                        int lastDot = methodPath.LastIndexOf('.');
+
+                        if (lastDot <= 0)
+                        {
+                              return;
+                        }
+
+                        string className = methodPath.Substring(0, lastDot);
+                        string methodName = methodPath.Substring(lastDot + 1);
+
+                        string[] guids = AssetDatabase.FindAssets($"t:MonoScript {className.Split('.').Last()}");
+
+                        foreach (string guid in guids)
+                        {
+                              string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                              var script = AssetDatabase.LoadAssetAtPath<MonoScript>(assetPath);
+
+                              if (script != null && script.GetClass() != null && script.GetClass().FullName == className)
+                              {
+                                    _selectedScript = script;
+
+                                    break;
+                              }
+                        }
+
+                        if (_selectedScript == null)
+                        {
+                              return;
+                        }
+
+                        Type scriptClass = _selectedScript.GetClass();
+
+                        if (scriptClass == null)
+                        {
+                              return;
+                        }
+
+                        MethodInfo[] methods = scriptClass.GetMethods(BindingFlags.Public | BindingFlags.Static);
+                        _methodNames = methods.Select(static m => m.Name).ToArray();
+                        _selectedMethodIndex = Array.FindIndex(_methodNames, name => name == methodName);
+
+                        if (_selectedMethodIndex == -1)
+                        {
+                              return;
+                        }
+
+                        MethodInfo selectedMethod = methods[_selectedMethodIndex];
+                        ParameterInfo[] paramInfos = selectedMethod.GetParameters();
+                        string[] stringArgs = !string.IsNullOrEmpty(paramsString) ? paramsString.Split(',') : Array.Empty<string>();
+
+                        if (paramInfos.Length == stringArgs.Length)
+                        {
+                              _methodParameters = new object[paramInfos.Length];
+
+                              for (int i = 0; i < paramInfos.Length; i++)
+                              {
+                                    Type paramType = paramInfos[i].ParameterType;
+                                    string stringValue = stringArgs[i].Trim();
+
+                                    _methodParameters[i] = paramType.IsEnum
+                                                ? Enum.Parse(paramType, stringValue)
+                                                : Convert.ChangeType(stringValue, paramType, System.Globalization.CultureInfo.InvariantCulture);
+                              }
+                        }
+                  }
+                  catch (Exception ex)
+                  {
+                        Debug.LogWarning($"[CustomToolbar] Could not parse method shortcut: {path}\n{ex.Message}");
+
+                        _selectedScript = null;
+                        _methodParameters = Array.Empty<object>();
+                        _methodNames = Array.Empty<string>();
+                  }
             }
 
             private static string GetGameObjectPath(GameObject obj)
@@ -609,8 +722,17 @@ namespace CustomToolbar.Editor.Settings
                         }
                   }
 
-                  string parametersString = string.Join(",", _methodParameters.Select(static p => p?.ToString() ?? ""));
-                  string finalPath = $"method:{selectedMethod.DeclaringType!.FullName}.{selectedMethod.Name}|{parametersString}";
+                  string finalPath;
+
+                  if (parameters.Length > 0)
+                  {
+                        string parametersString = string.Join(",", _methodParameters.Select(static p => p?.ToString() ?? ""));
+                        finalPath = $"method:{selectedMethod.DeclaringType!.FullName}.{selectedMethod.Name}|{parametersString}";
+                  }
+                  else
+                  {
+                        finalPath = $"method:{selectedMethod.DeclaringType!.FullName}.{selectedMethod.Name}";
+                  }
 
                   if (pathProp.stringValue != finalPath)
                   {

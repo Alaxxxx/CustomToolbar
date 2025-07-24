@@ -161,7 +161,7 @@ namespace CustomToolbar.Editor.ToolbarElements
                         throw new TypeLoadException($"Could not find class: {className}");
                   }
 
-                  string[] stringArgs = paramsString?.Split(',') ?? Array.Empty<string>();
+                  string[] stringArgs = string.IsNullOrEmpty(paramsString) ? Array.Empty<string>() : paramsString.Split(',');
 
                   MethodInfo methodInfo = FindMethodBySignature(type, methodName, stringArgs.Length);
 

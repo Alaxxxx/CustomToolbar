@@ -75,6 +75,7 @@ namespace CustomToolbar.Editor.Settings
                   sceneGroup.elements.Add(new ToolbarElement { name = typeof(ToolbarSceneSelection).AssemblyQualifiedName });
                   sceneGroup.elements.Add(new ToolbarElement { name = typeof(ToolbarStartFromFirstScene).AssemblyQualifiedName });
                   sceneGroup.elements.Add(new ToolbarElement { name = typeof(ToolbarReloadScene).AssemblyQualifiedName });
+                  sceneGroup.elements.Add(new ToolbarElement { name = typeof(ToolbarLayerVisibility).AssemblyQualifiedName });
                   config.groups.Add(sceneGroup);
 
                   // Groupe 3 : Controls bar

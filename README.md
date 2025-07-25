@@ -3,6 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Release](https://img.shields.io/github/v/release/Alaxxxx/CustomToolbar?style=flat-square)](https://github.com/Alaxxxx/CustomToolbar/releases)
 [![Unity Version](https://img.shields.io/badge/Unity-2021.3%2B-green.svg)](https://unity3d.com/get-unity/download)
+[![GitHub last commit](https://img.shields.io/github/last-commit/Alaxxxx/CustomToolbar)](https://github.com/Alaxxxx/CustomToolbar/commits/main)
 
 An advanced and highly customizable toolbar extension for the Unity Editor, designed to streamline your workflow and integrate your custom tools seamlessly.
 
@@ -10,8 +11,7 @@ This project was originally inspired by the great work of [smkplus/CustomToolbar
 
 <br>
 
-<img width="1426" height="246" alt="Screen" src="https://github.com/user-attachments/assets/bc0d239c-19eb-4a07-a2de-fd81fa383ae8" />
-
+<img width="1525" height="276" alt="Toolbar" src="https://github.com/user-attachments/assets/4a0a57eb-2476-478e-8523-a5d76893165e" />
 
 <br>
 
@@ -20,7 +20,7 @@ This project was originally inspired by the great work of [smkplus/CustomToolbar
 * **Powerful Configuration:** A polished, intuitive settings window to manage every aspect of your toolbar.
 * **Group Management:** Organize your tools into groups, reorder them with simple buttons, and assign them to the left or right side of the play controls.
 * **Extensible by Design:** Easily create your own toolbar elements by inheriting from a simple base class.
-* **The Toolbox:** A fully customizable dropdown menu for shortcuts to any Unity window, project asset, URL, or even static C# methods (macros).
+* **The Toolbox:** A fully customizable dropdown menu for shortcuts to any Unity window, project asset, URL, or even static C# methods.
 * **Built-in Elements:** Comes with a rich set of essential tools out of the box, ready to be added to your toolbar.
 
 <br>
@@ -65,13 +65,16 @@ This method is great if you prefer a specific, stable version of the asset.
 
 Once installed, the custom toolbar will appear automatically with a default layout. All customization is done through the Project Settings window.
 
+> [!NOTE]
+> By default, all tools are enabled to showcase the full capabilities of Custom Toolbar. For an optimal experience, especially on smaller screens, customizing the layout is recommended. See the [**Configuring the Toolbar**](#️-configuring-the-toolbar) section for details on how to create a personalized and efficient workflow.
+
 <br>
 
 ## ⚙️ Configuring the Toolbar
 
 All customization is done from a two-panel interface in **`Project Settings > Custom Toolbar`**.
 
-<img width="865" height="618" alt="Screenshot_Settings" src="https://github.com/user-attachments/assets/e92ffde0-55e5-47b3-b540-903a5909c478" />
+<img width="1210" height="735" alt="Settings" src="https://github.com/user-attachments/assets/0cfbf822-009e-4000-ab21-1d25b7770b62" />
 
 * **Left Panel:**
     * View all your groups, neatly separated by **Left Side** and **Right Side**.
@@ -83,6 +86,15 @@ All customization is done from a two-panel interface in **`Project Settings > Cu
     * When a group is selected, you can rename it, enable/disable it, or move it to the other side of the toolbar.
     * Add, remove, and reorder the elements within that group.
     * When a Toolbox shortcut is selected, use the **Shortcut Editor** to configure its action.
+
+ <br>
+ 
+> [!IMPORTANT]
+> After modifying **groups** or their **elements** (adding, removing, or reordering), you must click the **Save and Recompile** button at the bottom of the settings window.
+>
+> **Why?** The toolbar's layout and its elements are built and injected into the Unity editor only once when scripts are compiled. A recompile is necessary to apply these structural changes.
+>
+> This step is **not** required when adding or editing **Toolbox shortcuts**. They are loaded dynamically each time you open the menu, so changes are reflected instantly.
  
 <br>
 
@@ -94,10 +106,11 @@ Here is a list of the tools included with the package, ready to be added to your
 <summary><strong>Scene Management</strong></summary>
 <br>
 
-* **Scene Selection:** A dropdown that lists all scenes from `Assets/Scenes/`, allowing you to open them quickly. It also indicates which scenes are in the build settings.
-* **Start From First Scene:** Starts Play Mode from the first scene listed in your Build Settings, then returns you to the original scene when you exit.
-* **Reload Scene:** A button to reload the currently active scene while in Play Mode.
-* **Scene Bookmarks:** Save and quickly navigate to specific camera positions in your scene. A manager window allows you to add, delete, reorder, and generate thumbnails for your bookmarks.
+* **Scene Selection:** A dropdown that lists all scenes from `Assets/Scenes/`, allowing you to open them quickly. It also clearly indicates which scenes are included in the build settings.
+* **Start From First Scene:** Starts Play Mode from the first scene listed in your Build Settings, then automatically returns you to your original scene when you exit.
+* **Reload Scene:** A button to instantly reload the currently active scene while in Play Mode.
+* **Scene Bookmarks:** Save specific camera positions and angles in your scene and navigate to them instantly. A dedicated manager window allows you to add, delete, reorder, and even generate thumbnails for your bookmarks.
+* **Layer Visibility:** Control which layers are visible in the Scene View with a handy dropdown. Show, hide, or isolate specific layers to reduce visual clutter while working.
 
 </details>
 
@@ -105,11 +118,11 @@ Here is a list of the tools included with the package, ready to be added to your
 <summary><strong>Development & Debugging</strong></summary>
 <br>
 
-* **Find Missing References:** Scans the active scene for missing component references and displays them in an organized, user-friendly window.
-* **Clear PlayerPrefs:** Deletes all data saved in PlayerPrefs with a confirmation dialog to prevent accidental data loss.
-* **Recompile Scripts:** Manually trigger a script compilation.
-* **Reserialize All Assets:** Forces a reserialization of all assets in the project. Useful for fixing serialization errors or after a Unity upgrade.
-* **Play Mode Options:** A dropdown to configure the "Enter Play Mode" settings, allowing you to disable domain/scene reloads for faster iteration.
+* **Find Missing References:** Scans the active scene for broken or missing component references and displays them in a clean, user-friendly window, letting you select the problematic GameObjects directly.
+* **Clear PlayerPrefs:** Deletes all data saved in PlayerPrefs with a single click, including a confirmation dialog to prevent accidental data loss.
+* **Recompile Scripts:** Manually trigger a script compilation without having to modify a file.
+* **Reserialize All Assets:** Forces a reserialization of all assets in your project. A powerful tool for fixing stubborn serialization errors or after a major Unity upgrade.
+* **Play Mode Options:** Quickly configure the "Enter Play Mode" settings directly from the toolbar, allowing you to disable domain and scene reloads for lightning-fast iteration times.
 
 </details>
 
@@ -117,46 +130,54 @@ Here is a list of the tools included with the package, ready to be added to your
 <summary><strong>Utilities</strong></summary>
 <br>
 
-* **Save Project:** A single button to save both the current scene(s) and all modified project assets.
-* **Git Status:** If your project is a Git repository, this shows the current branch and indicates if there are uncommitted changes. It also allows you to switch between local branches.
-* **Screenshot:** A dropdown menu to capture the Game View or Scene View and save it to a `Screenshots` folder. It also provides a shortcut to open this folder.
-* **FPS Slider:** Controls the application's target frame rate (`Application.targetFrameRate`).
-* **Timescale Slider:** Controls the game's speed (`Time.timeScale`) during play mode, perfect for slow-motion analysis or fast-forwarding.
-* **Toolbox:** Your personal, customizable dropdown menu for shortcuts.
-* **Favorites:** Opens a dedicated window to manage custom lists of your most-used assets. 
+* **Save Project:** A convenient button that saves both the current scene(s) and all modified project assets in one go.
+* **Git Status:** If your project is a Git repository, this displays the current branch and an icon indicating if there are uncommitted changes. It also lets you switch between local branches directly from the editor.
+* **Screenshot:** A dropdown menu to instantly capture the Game View or Scene View and save it to a `Screenshots` folder. Also includes a shortcut to open this folder directly.
+* **FPS Slider:** Controls the application's target frame rate (`Application.targetFrameRate`), perfect for testing performance under different conditions.
+* **Timescale Slider:** Controls the game's speed (`Time.timeScale`) during play mode. Invaluable for slow-motion analysis or fast-forwarding through tedious sequences.
+* **Toolbox:** Your personal, fully customizable dropdown menu for shortcuts. See the dedicated section below for more details.
+* **Favorites:** Opens a powerful window to create and manage custom lists of your most-used assets. Add, remove, and reorder assets with drag-and-drop ease.
 
 </details>
 
 <br>
 
-## 🧰 The Toolbox: Your Ultimate Shortcut Menu
+## 🛠️ The Toolbox: Your Ultimate Shortcut Menu
 
 The Toolbox is one of the most powerful features of Custom Toolbar. It's a special, fully customizable dropdown menu designed to hold all your essential shortcuts. Instead of navigating through complex menus, you can access your most-used windows, assets, tools, and even custom C# methods with a single click.
 
-<img width="213" height="76" alt="Capture d'écran 2025-07-21 094324" src="https://github.com/user-attachments/assets/df7f30e8-55d8-4fd1-91d3-38579fe2d4f8" />
+<br>
+
+<img width="235" height="166" alt="Shortcut_2" src="https://github.com/user-attachments/assets/eb9caa1f-eccf-4c00-8e85-aa1a6ea18508" />
 
 <br>
 
 ### The Advanced Shortcut Editor
 
-Configuring shortcuts is made incredibly simple thanks to the **Advanced Shortcut Editor**. Instead of forcing you to manually type commands and paths, the editor provides a guided, context-aware interface that adapts to the type of shortcut you want to create.
+Configuring shortcuts is made incredibly simple thanks to the **Advanced Shortcut Editor** in the settings window. Instead of forcing you to manually type commands and paths, the editor provides a guided, context-aware interface that adapts to the type of shortcut you want to create.
+
+<br>
+
+<img width="1208" height="735" alt="Shortcut_1" src="https://github.com/user-attachments/assets/029be315-2044-4166-adda-3aa954c291a1" />
+
+<br>
 
 1.  **Select an Action Type:** First, choose what you want your shortcut to do. The available actions are:
-    * **Window:** Opens any built-in or custom Unity Editor window (e.g., `Project Settings`, `Animation`, `Profiler`). A browser is included to help you find the exact menu path.
+    * **Window:** Opens any built-in or custom Unity Editor window (e.g., `Project Settings`, `Animation`, `Profiler`). A handy browser is included to help you find the exact menu path without guesswork.
     * **Project Asset:** Instantly opens or highlights any asset in your project (e.g., a specific prefab, a material, a scene file). Simply drag and drop the asset into the object field.
     * **Project Folder:** Pings a specific folder in your Project window, allowing you to navigate to it instantly.
     * **URL:** Opens a web link in your default browser. Perfect for documentation, bug trackers, or team resources.
     * **GameObject:** Selects and pings a specific GameObject in the current scene's hierarchy.
-    * **Method:** Calls a static C# method from any script in your project. This is perfect for creating custom tools and macros.
+    * **Method:** Calls a static C# method from any script in your project. This is perfect for creating custom tools and powerful one-click macros.
 
 2.  **Use the Interactive Fields:** Based on your choice, the UI adapts to give you the right fields. You'll get an object field for assets and GameObjects, a simple text field for URLs, and the powerful Method Editor for C# methods.
 
-3.  **Unleash the Power of the Method Editor:** The "Method" action type transforms the Toolbox into a powerful script runner.
+3.  **Unleash the Power of the Method Editor:** The "Method" action type transforms the Toolbox into a potent script runner.
     * Simply drag your C# script file into the "Script File" field.
-    * The editor will automatically inspect the script and list all available `public static` methods.
-    * Once you select a method, the editor generates fields for each of its parameters (`int`, `float`, `string`, `bool`, and enums are supported).
+    * The editor automatically inspects the script and lists all available `public static` methods.
+    * Once you select a method, the editor intelligently generates fields for each of its parameters (`int`, `float`, `string`, `bool`, and `enum` types are supported).
     * This removes all the guesswork and potential for typos, allowing you to create complex macro shortcuts with ease.
-  
+
 <img width="860" height="618" alt="Capture d'écran 2025-07-21 094307" src="https://github.com/user-attachments/assets/2520f541-ec91-43e9-8175-3675679e3565" />
 
 <br>
@@ -232,3 +253,15 @@ After saving your script, Unity will recompile. Your new element is now ready to
 4. Select your element from the list to add it to the group.
 
 Click "Save and Recompile". Your new button will appear on the main toolbar!
+
+<br>
+
+## 🤝 Contributing
+
+Any kind of contribution is welcome and greatly appreciated!
+
+* **💡 Feature Requests & Ideas:** Have an idea for a new tool or an improvement? Please [open an issue](https://github.com/Alaxxxx/CustomToolbar/issues) to share your thoughts.
+* **🐛 Bug Reports:** If you find a bug, a well-documented issue with steps to reproduce it would be fantastic.
+* **🔌 Pull Requests:** Feel free to fork the repository and submit pull requests for bug fixes or new features.
+
+Thank you !

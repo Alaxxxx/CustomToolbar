@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Release](https://img.shields.io/github/v/release/Alaxxxx/CustomToolbar?style=flat-square)](https://github.com/Alaxxxx/CustomToolbar/releases)
+[![openupm](https://img.shields.io/npm/v/com.opalstudio.customtoolbar?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.opalstudio.customtoolbar/)
 [![Unity Version](https://img.shields.io/badge/Unity-2021.3%2B-green.svg)](https://unity3d.com/get-unity/download)
 [![GitHub last commit](https://img.shields.io/github/last-commit/Alaxxxx/CustomToolbar)](https://github.com/Alaxxxx/CustomToolbar/commits/main)
 

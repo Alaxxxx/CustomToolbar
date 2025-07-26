@@ -53,6 +53,33 @@ This method is great if you prefer a specific, stable version of the asset.
 </details>
 
 <details>
+<summary><strong>1. Install via OpenUPM </strong></summary>
+<br>
+This is the easiest way to install the package and keep it up to date.
+
+**A) With the OpenUPM CLI:**
+
+1. Install the [OpenUPM CLI](https://openupm.com/docs/cli/).
+2. Run the following command in your Unity project's root folder:
+   ```sh
+   openupm add com.opalstudio.customtoolbar
+   ```
+
+**B) Manually in Unity Editor:**
+
+1. In Unity, go to **`Edit > Project Settings > Package Manager`**.
+2. Add a new **Scoped Registry** with the following details:
+   - **Name:** OpenUPM
+   - **URL:** https://package.openupm.com
+   - **Scope(s):** com.opalstudio.customtoolbar
+3. Click **Save**.
+4. Open the Package Manager (`Window > Package Management > Package Manager`).
+5. Select **"My Registries"** from the dropdown.
+6. Choose the **CustomToolbar** package, and click **Install**.
+
+</details>
+
+<details>
 <summary><strong>3. Manual Installation (from .zip)</strong></summary>
 <br>
 

@@ -31,7 +31,6 @@ namespace CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
             private static Quaternion startRotation;
             private static float startSize;
 
-            [MenuItem("Tools/Scene Bookmarks")]
             public static void ShowWindow()
             {
                   var window = GetWindow<SceneBookmarksWindow>("Scene Bookmarks");
@@ -284,8 +283,9 @@ namespace CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
 
                   tempCam.CopyFrom(sceneView.camera);
 
-                  tempCam.transform.position = bookmark.pivot - (bookmark.rotation * Vector3.forward * (bookmark.size * 2));
-                  tempCam.transform.rotation = bookmark.rotation;
+                  Transform transform = tempCam.transform;
+                  transform.position = bookmark.pivot - (bookmark.rotation * Vector3.forward * (bookmark.size * 2));
+                  transform.rotation = bookmark.rotation;
 
                   var rt = new RenderTexture(width, height, 24);
                   tempCam.targetTexture = rt;

@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEditor;
 
-namespace CustomToolbar.Editor.ToolbarElements
+namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
 {
       /// <summary>
       /// The base contract for any element that can be displayed on the Custom Toolbar.

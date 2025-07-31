@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using CustomToolbar.Editor.Core;
-using CustomToolbar.Editor.Utils;
+using OpalStudio.CustomToolbar.Editor.Core;
+using OpalStudio.CustomToolbar.Editor.Utils;
 using UnityEditor;
 using UnityEngine;
 
-namespace CustomToolbar.Editor.ToolbarElements
+namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
 {
       sealed internal class ToolbarGitStatus : BaseToolbarElement
       {
@@ -19,7 +19,7 @@ namespace CustomToolbar.Editor.ToolbarElements
 
             public override void OnInit()
             {
-                  Width = 100;
+                  this.Width = 100;
                   buttonContent = new GUIContent();
                   RefreshStatus();
 
@@ -29,7 +29,7 @@ namespace CustomToolbar.Editor.ToolbarElements
 
             public override void OnDrawInToolbar()
             {
-                  if (EditorGUILayout.DropdownButton(buttonContent, FocusType.Keyboard, ToolbarStyles.CommandPopupStyle, GUILayout.Width(Width)))
+                  if (EditorGUILayout.DropdownButton(buttonContent, FocusType.Keyboard, ToolbarStyles.CommandPopupStyle, GUILayout.Width(this.Width)))
                   {
                         BuildGitMenu().ShowAsContext();
                   }

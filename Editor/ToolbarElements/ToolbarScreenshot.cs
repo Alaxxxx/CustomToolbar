@@ -1,10 +1,10 @@
 ﻿using System;
 using System.IO;
-using CustomToolbar.Editor.Core;
+using OpalStudio.CustomToolbar.Editor.Core;
 using UnityEditor;
 using UnityEngine;
 
-namespace CustomToolbar.Editor.ToolbarElements
+namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
 {
       sealed internal class ToolbarScreenshot : BaseToolbarElement
       {
@@ -22,7 +22,7 @@ namespace CustomToolbar.Editor.ToolbarElements
 
             public override void OnDrawInToolbar()
             {
-                  if (EditorGUILayout.DropdownButton(buttonContent, FocusType.Passive, ToolbarStyles.CommandButtonStyle, GUILayout.Width(Width)))
+                  if (EditorGUILayout.DropdownButton(buttonContent, FocusType.Passive, ToolbarStyles.CommandButtonStyle, GUILayout.Width(this.Width)))
                   {
                         var menu = new GenericMenu();
                         menu.AddItem(new GUIContent("Capture Game View"), false, CaptureGameView);

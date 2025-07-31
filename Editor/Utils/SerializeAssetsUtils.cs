@@ -1,6 +1,6 @@
 ﻿using UnityEditor;
 
-namespace CustomToolbar.Editor.Utils
+namespace OpalStudio.CustomToolbar.Editor.Utils
 {
       internal static class SerializeAssetsUtils
       {

@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
-namespace CustomToolbar.Editor.Settings
+namespace OpalStudio.CustomToolbar.Editor.Settings
 {
       public sealed class MenuItemBrowser : EditorWindow
       {
@@ -84,7 +84,7 @@ namespace CustomToolbar.Editor.Settings
 
             private void DrawHeader()
             {
-                  var headerRect = new Rect(0, 0, position.width, HeaderHeight);
+                  var headerRect = new Rect(0, 0, this.position.width, HeaderHeight);
                   EditorGUI.DrawRect(headerRect, _headerColor);
 
                   var searchRect = new Rect(headerRect.x + 10, headerRect.y + 10, headerRect.width - 20, 20);

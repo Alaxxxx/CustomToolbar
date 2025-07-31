@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace CustomToolbar.Editor.ToolbarElements.Favorites.Data
+namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Data
 {
       [System.Serializable]
       public class FavoriteList

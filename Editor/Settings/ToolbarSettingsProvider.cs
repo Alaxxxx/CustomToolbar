@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using CustomToolbar.Editor.Core.Data;
-using CustomToolbar.Editor.ToolbarElements;
+using OpalStudio.CustomToolbar.Editor.Core.Data;
+using OpalStudio.CustomToolbar.Editor.ToolbarElements;
 using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
-namespace CustomToolbar.Editor.Settings
+namespace OpalStudio.CustomToolbar.Editor.Settings
 {
       /// <summary>
       /// Unity Settings Provider for Custom Toolbar configuration.

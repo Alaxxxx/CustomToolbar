@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CustomToolbar.Editor.Core.Data
+namespace OpalStudio.CustomToolbar.Editor.Core.Data
 {
       [Serializable]
       public class ToolboxShortcut

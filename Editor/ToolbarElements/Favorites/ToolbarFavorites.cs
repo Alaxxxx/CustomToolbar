@@ -1,9 +1,9 @@
-﻿using CustomToolbar.Editor.Core;
-using CustomToolbar.Editor.ToolbarElements.Favorites.Window;
+﻿using OpalStudio.CustomToolbar.Editor.Core;
+using OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window;
 using UnityEditor;
 using UnityEngine;
 
-namespace CustomToolbar.Editor.ToolbarElements.Favorites
+namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites
 {
       sealed internal class ToolbarFavorites : BaseToolbarElement
       {

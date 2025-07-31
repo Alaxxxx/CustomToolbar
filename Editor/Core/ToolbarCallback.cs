@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
-namespace CustomToolbar.Editor.Core
+namespace OpalStudio.CustomToolbar.Editor.Core
 {
       /// <summary>
       /// Provides a callback system for injecting custom GUI elements into Unity's toolbar.

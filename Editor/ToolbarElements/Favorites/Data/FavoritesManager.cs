@@ -2,7 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace CustomToolbar.Editor.ToolbarElements.Favorites.Data
+namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Data
 {
       public sealed class FavoritesManager : ScriptableObject
       {

@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using CustomToolbar.Editor.ToolbarElements.MissingReferences.Data;
+using OpalStudio.CustomToolbar.Editor.ToolbarElements.MissingReferences.Data;
 using UnityEditor;
 using UnityEngine;
 
-namespace CustomToolbar.Editor.ToolbarElements.MissingReferences.Window
+namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.MissingReferences.Window
 {
       sealed internal class MissingReferencesWindow : EditorWindow
       {

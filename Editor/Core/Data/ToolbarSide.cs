@@ -1,4 +1,4 @@
-﻿namespace CustomToolbar.Editor.Core.Data
+﻿namespace OpalStudio.CustomToolbar.Editor.Core.Data
 {
       public enum ToolbarSide
       {

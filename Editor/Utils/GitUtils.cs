@@ -6,7 +6,7 @@ using System.Linq;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
-namespace CustomToolbar.Editor.Utils
+namespace OpalStudio.CustomToolbar.Editor.Utils
 {
       public static class GitUtils
       {

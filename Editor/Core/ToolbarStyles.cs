@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace CustomToolbar.Editor.Core
+namespace OpalStudio.CustomToolbar.Editor.Core
 {
       /// <summary>
       /// Provides reusable style definitions for toolbar elements in Unity editor extensions.

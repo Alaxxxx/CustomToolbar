@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using CustomToolbar.Editor.Core;
+using OpalStudio.CustomToolbar.Editor.Core;
 using UnityEditor;
 using UnityEngine;
 
-namespace CustomToolbar.Editor.ToolbarElements
+namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
 {
       sealed internal class ToolbarEnterPlayMode : BaseToolbarElement
       {

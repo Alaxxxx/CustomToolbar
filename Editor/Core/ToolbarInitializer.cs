@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CustomToolbar.Editor.Core.Data;
-using CustomToolbar.Editor.Settings;
-using CustomToolbar.Editor.ToolbarElements;
+using OpalStudio.CustomToolbar.Editor.Core.Data;
+using OpalStudio.CustomToolbar.Editor.Settings;
+using OpalStudio.CustomToolbar.Editor.ToolbarElements;
 using UnityEditor;
 using UnityEngine;
 
-namespace CustomToolbar.Editor.Core
+namespace OpalStudio.CustomToolbar.Editor.Core
 {
       /// <summary>
       /// Initializes and manages custom toolbar elements based on configuration settings.

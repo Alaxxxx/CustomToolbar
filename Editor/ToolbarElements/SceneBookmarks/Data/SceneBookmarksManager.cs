@@ -3,7 +3,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Data
+namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Data
 {
       public sealed class SceneBookmarksManager : ScriptableObject
       {

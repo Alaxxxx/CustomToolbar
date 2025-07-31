@@ -3,7 +3,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace CustomToolbar.Editor.Utils
+namespace OpalStudio.CustomToolbar.Editor.Utils
 {
       internal static class SceneAssetsUtils
       {
@@ -29,17 +29,6 @@ namespace CustomToolbar.Editor.Utils
                         string firstScenePath = EditorBuildSettings.scenes[0].path;
                         EditorSceneManager.OpenScene(firstScenePath);
                         EditorApplication.isPlaying = true;
-                  }
-            }
-
-            public static void RestoreSceneAfterPlay()
-            {
-                  string sceneToRestore = SessionState.GetString(LastActiveSceneStateKey, string.Empty);
-
-                  if (!string.IsNullOrEmpty(sceneToRestore))
-                  {
-                        EditorSceneManager.OpenScene(sceneToRestore);
-                        SessionState.EraseString(LastActiveSceneStateKey);
                   }
             }
       }

@@ -2,14 +2,14 @@
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using CustomToolbar.Editor.Core;
-using CustomToolbar.Editor.Core.Data;
-using CustomToolbar.Editor.Settings;
+using OpalStudio.CustomToolbar.Editor.Core;
+using OpalStudio.CustomToolbar.Editor.Core.Data;
+using OpalStudio.CustomToolbar.Editor.Settings;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace CustomToolbar.Editor.ToolbarElements
+namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
 {
       sealed internal class ToolbarToolbox : BaseToolbarElement
       {
@@ -25,7 +25,7 @@ namespace CustomToolbar.Editor.ToolbarElements
 
             public override void OnDrawInToolbar()
             {
-                  if (EditorGUILayout.DropdownButton(buttonContent, FocusType.Passive, ToolbarStyles.CommandButtonStyle, GUILayout.Width(Width)))
+                  if (EditorGUILayout.DropdownButton(buttonContent, FocusType.Passive, ToolbarStyles.CommandButtonStyle, GUILayout.Width(this.Width)))
                   {
                         GenerateMenu().ShowAsContext();
                   }

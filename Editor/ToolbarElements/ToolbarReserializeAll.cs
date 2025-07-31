@@ -1,9 +1,9 @@
-﻿using CustomToolbar.Editor.Core;
-using CustomToolbar.Editor.Utils;
+﻿using OpalStudio.CustomToolbar.Editor.Core;
+using OpalStudio.CustomToolbar.Editor.Utils;
 using UnityEditor;
 using UnityEngine;
 
-namespace CustomToolbar.Editor.ToolbarElements
+namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
 {
       sealed internal class ToolbarReserializeAll : BaseToolbarElement
       {

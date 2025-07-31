@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
-using CustomToolbar.Editor.Core;
-using CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Data;
-using CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window;
+using OpalStudio.CustomToolbar.Editor.Core;
+using OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Data;
+using OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window;
 using UnityEditor;
 using UnityEngine;
 
-namespace CustomToolbar.Editor.ToolbarElements.SceneBookmarks
+namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks
 {
       sealed internal class ToolbarSceneBookmarks : BaseToolbarElement
       {

@@ -1,8 +1,8 @@
-﻿using CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Data;
+﻿using OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Data;
 using UnityEditor;
 using UnityEngine;
 
-namespace CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
+namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
 {
       public sealed class SceneBookmarksWindow : EditorWindow
       {

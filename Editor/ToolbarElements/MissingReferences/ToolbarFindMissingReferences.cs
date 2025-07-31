@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
-using CustomToolbar.Editor.Core;
-using CustomToolbar.Editor.ToolbarElements.MissingReferences.Data;
-using CustomToolbar.Editor.ToolbarElements.MissingReferences.Window;
+using OpalStudio.CustomToolbar.Editor.Core;
+using OpalStudio.CustomToolbar.Editor.ToolbarElements.MissingReferences.Data;
+using OpalStudio.CustomToolbar.Editor.ToolbarElements.MissingReferences.Window;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace CustomToolbar.Editor.ToolbarElements.MissingReferences
+namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.MissingReferences
 {
       sealed internal class ToolbarFindMissingReferences : BaseToolbarElement
       {

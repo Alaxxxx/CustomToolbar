@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using CustomToolbar.Editor.ToolbarElements.Favorites.Data;
+using OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Data;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace CustomToolbar.Editor.ToolbarElements.Favorites.Window
+namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
 {
       public sealed class FavoritesWindow : EditorWindow
       {

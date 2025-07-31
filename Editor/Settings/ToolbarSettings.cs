@@ -1,13 +1,13 @@
 ﻿using System.IO;
-using CustomToolbar.Editor.Core.Data;
-using CustomToolbar.Editor.ToolbarElements;
-using CustomToolbar.Editor.ToolbarElements.Favorites;
-using CustomToolbar.Editor.ToolbarElements.MissingReferences;
-using CustomToolbar.Editor.ToolbarElements.SceneBookmarks;
+using OpalStudio.CustomToolbar.Editor.Core.Data;
+using OpalStudio.CustomToolbar.Editor.ToolbarElements;
+using OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites;
+using OpalStudio.CustomToolbar.Editor.ToolbarElements.MissingReferences;
+using OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks;
 using UnityEditor;
 using UnityEngine;
 
-namespace CustomToolbar.Editor.Settings
+namespace OpalStudio.CustomToolbar.Editor.Settings
 {
       /// <summary>
       /// Manages the loading, creation, and caching of toolbar configuration settings.

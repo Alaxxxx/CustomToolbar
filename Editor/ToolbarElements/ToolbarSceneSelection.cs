@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using CustomToolbar.Editor.Core;
+using OpalStudio.CustomToolbar.Editor.Core;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace CustomToolbar.Editor.ToolbarElements
+namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
 {
       sealed internal class ToolbarSceneSelection : BaseToolbarElement
       {
@@ -20,7 +20,7 @@ namespace CustomToolbar.Editor.ToolbarElements
 
             public override void OnInit()
             {
-                  Width = 120;
+                  this.Width = 120;
 
                   EditorSceneManager.sceneOpened -= OnSceneChanged;
                   EditorSceneManager.sceneOpened += OnSceneChanged;
@@ -53,7 +53,7 @@ namespace CustomToolbar.Editor.ToolbarElements
                               return;
                         }
 
-                        if (EditorGUILayout.DropdownButton(buttonContent, FocusType.Keyboard, ToolbarStyles.CommandPopupStyle, GUILayout.Width(Width)))
+                        if (EditorGUILayout.DropdownButton(buttonContent, FocusType.Keyboard, ToolbarStyles.CommandPopupStyle, GUILayout.Width(this.Width)))
                         {
                               BuildSceneMenu().ShowAsContext();
                         }
@@ -66,14 +66,24 @@ namespace CustomToolbar.Editor.ToolbarElements
 
                   if (scenePaths.Count == 0)
                   {
-                        menu.AddDisabledItem(new GUIContent("No scenes found in Assets/Scenes"));
+                        menu.AddDisabledItem(new GUIContent("No scenes found in project"));
 
                         return menu;
                   }
 
+                  var ignoredScenes = new List<string> { "Basic", "Standard" };
+
                   foreach (string path in scenePaths)
                   {
-                        string menuPath = path["Assets/Scenes/".Length..].Replace(".unity", "", StringComparison.Ordinal);
+                        string sceneName = System.IO.Path.GetFileNameWithoutExtension(path);
+
+                        if (ignoredScenes.Contains(sceneName))
+                        {
+                              continue;
+                        }
+
+                        string menuPath = path.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase) ? path.Substring("Assets/".Length) : path;
+                        menuPath = menuPath.EndsWith(".unity", StringComparison.OrdinalIgnoreCase) ? menuPath.Substring(0, menuPath.Length - ".unity".Length) : menuPath;
 
                         if (buildSceneData.TryGetValue(path, out int buildIndex))
                         {
@@ -106,10 +116,7 @@ namespace CustomToolbar.Editor.ToolbarElements
                   {
                         string path = AssetDatabase.GUIDToAssetPath(guid);
 
-                        if (path.StartsWith("Assets/Scenes/", StringComparison.Ordinal))
-                        {
-                              scenePaths.Add(path);
-                        }
+                        scenePaths.Add(path);
                   }
 
                   scenePaths.Sort(static (pathA, pathB) =>
@@ -121,9 +128,7 @@ namespace CustomToolbar.Editor.ToolbarElements
                   });
 
                   Scene activeScene = SceneManager.GetActiveScene();
-
                   Texture sceneIcon = EditorGUIUtility.IconContent("d_SceneAsset Icon").image;
-
                   buttonContent = new GUIContent(activeScene.name, sceneIcon, Tooltip);
             }
 

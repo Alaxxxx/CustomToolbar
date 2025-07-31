@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace CustomToolbar.Editor.Core.Data
+namespace OpalStudio.CustomToolbar.Editor.Core.Data
 {
       public sealed class ToolbarConfiguration : ScriptableObject
       {

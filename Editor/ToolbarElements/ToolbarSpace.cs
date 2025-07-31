@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace CustomToolbar.Editor.ToolbarElements
+namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
 {
       sealed internal class ToolbarSpace : BaseToolbarElement
       {

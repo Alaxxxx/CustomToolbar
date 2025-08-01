@@ -31,7 +31,19 @@ This project was originally inspired by the great work of [smkplus/CustomToolbar
 ### Installation
 
 <details>
-<summary><strong>1. Install via Git URL (Recommended)</strong></summary>
+<summary><strong>1. Install via Unity Asset Store (Recommended)</strong></summary>
+<br>
+This is the easiest way to install and receive updates.
+
+1.  Open the <a href="https://assetstore.unity.com/packages/tools/utilities/customtoolbar-327041">CustomToolbar page on the Unity Asset Store</a> and click <b>"Add to My Assets"</b>.
+2.  In your Unity project, open the **Package Manager** (`Window > Package Manager`).
+3.  In the Package Manager window, select the **"Packages: My Assets"** view from the top-left dropdown menu.
+4.  Find **CustomToolbar** in the list and click the **"Import"** button.
+
+</details>
+
+<details>
+<summary><strong>1. Install via Git URL</strong></summary>
 <br>
 This method installs the package directly from the GitHub repository and allows you to easily update to the latest version.
 

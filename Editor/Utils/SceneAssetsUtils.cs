@@ -31,5 +31,24 @@ namespace OpalStudio.CustomToolbar.Editor.Utils
                         EditorApplication.isPlaying = true;
                   }
             }
+
+            public static void RestoreSceneAfterPlay()
+            {
+                  string sceneToRestore = SessionState.GetString(LastActiveSceneStateKey, string.Empty);
+
+                  if (!string.IsNullOrEmpty(sceneToRestore))
+                  {
+                        if (System.IO.File.Exists(sceneToRestore))
+                        {
+                              EditorSceneManager.OpenScene(sceneToRestore);
+                        }
+                        else
+                        {
+                              Debug.LogWarning($"[CustomToolbar] Could not restore previous scene. File not found at path: {sceneToRestore}");
+                        }
+
+                        SessionState.EraseString(LastActiveSceneStateKey);
+                  }
+            }
       }
 }

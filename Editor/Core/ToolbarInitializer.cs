@@ -4,6 +4,7 @@ using System.Linq;
 using OpalStudio.CustomToolbar.Editor.Core.Data;
 using OpalStudio.CustomToolbar.Editor.Settings;
 using OpalStudio.CustomToolbar.Editor.ToolbarElements;
+using OpalStudio.CustomToolbar.Editor.Utils;
 using UnityEditor;
 using UnityEngine;
 
@@ -30,6 +31,8 @@ namespace OpalStudio.CustomToolbar.Editor.Core
                   ToolbarCallback.OnToolbarGUIRightOfCenter = DrawToolbar(RightElements);
 
                   SubscribeToEditorEvents();
+
+                  EditorApplication.playModeStateChanged += HandlePlayModeStateChange;
             }
 
             private static void CreateElementsFromConfig(ToolbarConfiguration config)
@@ -104,6 +107,14 @@ namespace OpalStudio.CustomToolbar.Editor.Core
 
                   // Initialize all toolbar elements by calling their OnInit method
                   allElements.ForEach(static e => e.OnInit());
+            }
+
+            private static void HandlePlayModeStateChange(PlayModeStateChange state)
+            {
+                  if (state == PlayModeStateChange.EnteredEditMode)
+                  {
+                        SceneAssetsUtils.RestoreSceneAfterPlay();
+                  }
             }
       }
 }

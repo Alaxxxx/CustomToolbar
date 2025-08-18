@@ -1,6 +1,9 @@
-﻿using OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Data;
+﻿using System.Collections.Generic;
+using System.Linq;
+using OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Data;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
 {
@@ -9,9 +12,11 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
             private SceneBookmarksManager _manager;
             private Vector2 _scrollPosition;
             private string _newBookmarkName = "New Bookmark";
+            private const string NewGroupName = "New Group";
 
             private GUIStyle _headerBackgroundStyle;
             private GUIStyle _cardStyle;
+            private GUIStyle _groupHeaderStyle;
             private GUIStyle _bookmarkNameStyle;
             private GUIStyle _toggleButtonStyle;
             private GUIContent _deleteIcon;
@@ -19,6 +24,8 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
             private GUIContent _updateIcon;
             private GUIContent _upIcon;
             private GUIContent _downIcon;
+            private GUIContent _folderIcon;
+            private GUIContent _addIcon;
             private static bool useSmoothTransition = true;
             private static bool isTransitioning;
 
@@ -41,8 +48,14 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
             private void OnEnable()
             {
                   _manager = SceneBookmarksManager.Instance;
+                  LoadTexturesForCurrentScene();
+            }
 
-                  foreach (SceneBookmark bookmark in _manager.bookmarks)
+            private void LoadTexturesForCurrentScene()
+            {
+                  List<SceneBookmark> bookmarks = _manager.GetCurrentSceneBookmarks();
+
+                  foreach (SceneBookmark bookmark in bookmarks)
                   {
                         bookmark.LoadTexture();
                   }
@@ -52,11 +65,15 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
             {
                   Texture2D headerBgTex = MakeTex(1, 1, new Color(0.15f, 0.15f, 0.15f));
                   Texture2D cardBgTex = MakeTex(1, 1, new Color(0.22f, 0.22f, 0.22f));
+                  Texture2D groupBgTex = MakeTex(1, 1, new Color(0.18f, 0.18f, 0.18f));
 
                   _headerBackgroundStyle = new GUIStyle { normal = { background = headerBgTex }, padding = new RectOffset(10, 10, 7, 7) };
 
                   _cardStyle = new GUIStyle(GUI.skin.box)
                               { padding = new RectOffset(10, 10, 10, 10), margin = new RectOffset(10, 10, 5, 5), normal = { background = cardBgTex } };
+
+                  _groupHeaderStyle = new GUIStyle(GUI.skin.box)
+                              { padding = new RectOffset(8, 8, 5, 5), margin = new RectOffset(5, 5, 2, 2), normal = { background = groupBgTex } };
                   _bookmarkNameStyle = new GUIStyle(EditorStyles.textField) { fontSize = 13, fixedHeight = 20, margin = { top = 2 } };
                   _toggleButtonStyle = new GUIStyle(EditorStyles.toolbarButton);
 
@@ -65,6 +82,8 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
                   _updateIcon = EditorGUIUtility.IconContent("d_Refresh");
                   _upIcon = EditorGUIUtility.IconContent("d_ProfilerTimelineDigDownArrow");
                   _downIcon = EditorGUIUtility.IconContent("d_ProfilerTimelineRollUpArrow");
+                  _folderIcon = EditorGUIUtility.IconContent("d_Folder Icon");
+                  _addIcon = EditorGUIUtility.IconContent("d_Toolbar Plus");
 
                   _stylesInitialized = true;
             }
@@ -77,18 +96,39 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
                   }
 
                   DrawHeader();
+                  DrawCurrentSceneInfo();
                   DrawBookmarkList();
                   DrawFooter();
+            }
+
+            private static void DrawCurrentSceneInfo()
+            {
+                  Scene activeScene = SceneManager.GetActiveScene();
+
+                  if (activeScene.IsValid())
+                  {
+                        EditorGUILayout.LabelField($"Scene: {activeScene.name}", EditorStyles.boldLabel);
+                  }
+                  else
+                  {
+                        EditorGUILayout.HelpBox("No active scene. Bookmarks require an active scene.", MessageType.Warning);
+                  }
             }
 
             private void DrawHeader()
             {
                   EditorGUILayout.BeginHorizontal(_headerBackgroundStyle, GUILayout.Height(40));
+
                   _newBookmarkName = EditorGUILayout.TextField(_newBookmarkName, GUILayout.ExpandWidth(true), GUILayout.Height(25));
 
-                  if (GUILayout.Button("Add", GUILayout.Width(60), GUILayout.Height(25)))
+                  if (GUILayout.Button("Add Bookmark", GUILayout.Width(100), GUILayout.Height(25)))
                   {
                         AddNewBookmark();
+                  }
+
+                  if (GUILayout.Button(new GUIContent(_addIcon.image, "Create New Group"), GUILayout.Width(30), GUILayout.Height(25)))
+                  {
+                        ShowCreateGroupDialog();
                   }
 
                   EditorGUILayout.EndHorizontal();
@@ -98,31 +138,113 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
             {
                   _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
 
-                  if (_manager.bookmarks.Count > 0)
+                  List<BookmarkGroup> groups = _manager.GetCurrentSceneGroups();
+                  List<SceneBookmark> bookmarks = _manager.GetCurrentSceneBookmarks();
+                  List<SceneBookmark> rootBookmarks = bookmarks.Where(static b => string.IsNullOrEmpty(b.groupId)).ToList();
+
+                  for (int i = 0; i < groups.Count; i++)
                   {
-                        for (int i = _manager.bookmarks.Count - 1; i >= 0; i--)
+                        DrawGroup(groups[i], i, groups.Count);
+                  }
+
+                  if (rootBookmarks.Count > 0)
+                  {
+                        EditorGUILayout.Space(5);
+
+                        for (int i = 0; i < rootBookmarks.Count; i++)
                         {
                               EditorGUILayout.BeginHorizontal(_cardStyle);
-                              DrawBookmarkCard(i);
+                              DrawBookmarkCard(rootBookmarks[i], i, rootBookmarks.Count);
                               EditorGUILayout.EndHorizontal();
                         }
                   }
-                  else
+
+                  if (groups.Count == 0 && rootBookmarks.Count == 0)
                   {
-                        EditorGUILayout.HelpBox("No bookmarks yet. Position your camera and click 'Add'.", MessageType.Info);
+                        EditorGUILayout.HelpBox("No bookmarks yet. Position your camera and click 'Add Bookmark'.", MessageType.Info);
                   }
 
                   EditorGUILayout.EndScrollView();
             }
 
-            private void DrawBookmarkCard(int index)
+            private void DrawGroup(BookmarkGroup group, int groupIndex, int totalGroups)
             {
-                  SceneBookmark bookmark = _manager.bookmarks[index];
+                  EditorGUILayout.BeginVertical(_groupHeaderStyle);
+
+                  EditorGUILayout.BeginHorizontal();
+
+                  group.isExpanded = EditorGUILayout.Foldout(group.isExpanded, "", true);
+
+                  GUILayout.Label(_folderIcon, GUILayout.Width(16), GUILayout.Height(16));
+
+                  EditorGUI.BeginChangeCheck();
+                  string newGroupName = EditorGUILayout.TextField(group.name, EditorStyles.textField);
+
+                  if (EditorGUI.EndChangeCheck())
+                  {
+                        group.name = newGroupName;
+                        _manager.Save();
+                  }
+
+                  GUILayout.FlexibleSpace();
+
+                  if (IconButton(_upIcon, groupIndex > 0))
+                  {
+                        _manager.MoveGroup(group, -1);
+                  }
+
+                  if (IconButton(_downIcon, groupIndex < totalGroups - 1))
+                  {
+                        _manager.MoveGroup(group, 1);
+                  }
+
+                  if (IconButton(_deleteIcon) &&
+                      EditorUtility.DisplayDialog("Delete Group", $"Delete group '{group.name}'?\nBookmarks will be moved to root.", "Yes", "No"))
+                  {
+                        _manager.RemoveGroup(group);
+                        GUIUtility.ExitGUI();
+                  }
+
+                  EditorGUILayout.EndHorizontal();
+
+                  if (group.isExpanded)
+                  {
+                        List<SceneBookmark> groupBookmarks = _manager.GetCurrentSceneBookmarks().Where(b => b.groupId == group.id).ToList();
+
+                        if (groupBookmarks.Count > 0)
+                        {
+                              EditorGUILayout.Space(3);
+
+                              for (int i = 0; i < groupBookmarks.Count; i++)
+                              {
+                                    EditorGUILayout.BeginHorizontal(_cardStyle);
+                                    DrawBookmarkCard(groupBookmarks[i], i, groupBookmarks.Count);
+                                    EditorGUILayout.EndHorizontal();
+                              }
+                        }
+                        else
+                        {
+                              EditorGUILayout.LabelField("  No bookmarks in this group", EditorStyles.centeredGreyMiniLabel);
+                        }
+                  }
+
+                  EditorGUILayout.EndVertical();
+                  EditorGUILayout.Space(3);
+            }
+
+            private void DrawBookmarkCard(SceneBookmark bookmark, int index, int totalCount)
+            {
                   EditorGUILayout.BeginHorizontal();
 
                   if (bookmark.ThumbnailTexture)
                   {
-                        GUILayout.Box(bookmark.ThumbnailTexture, GUILayout.Width(128), GUILayout.Height(72));
+                        Rect rect = GUILayoutUtility.GetRect(128, 72, GUILayout.Width(128), GUILayout.Height(72));
+                        GUI.DrawTexture(rect, bookmark.ThumbnailTexture);
+
+                        if (rect.Contains(Event.current.mousePosition))
+                        {
+                              GUI.tooltip = $"Position: ({bookmark.pivot.x:F1}, {bookmark.pivot.y:F1}, {bookmark.pivot.z:F1}) - Size: {bookmark.size:F1}";
+                        }
                   }
                   else
                   {
@@ -133,6 +255,7 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
                   }
 
                   EditorGUILayout.BeginVertical();
+
                   EditorGUI.BeginChangeCheck();
                   string newName = EditorGUILayout.TextField(bookmark.name, _bookmarkNameStyle);
 
@@ -154,11 +277,14 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
                         UpdateBookmark(bookmark);
                   }
 
+                  if (GUILayout.Button("Move", GUILayout.Width(50), GUILayout.Height(30)))
+                  {
+                        ShowMoveToGroupMenu(bookmark);
+                  }
+
                   if (IconButton(_deleteIcon) && EditorUtility.DisplayDialog("Delete Bookmark", $"Delete '{bookmark.name}'?", "Yes", "No"))
                   {
-                        _manager.bookmarks.RemoveAt(index);
-                        _manager.Save();
-
+                        _manager.RemoveBookmark(bookmark);
                         GUIUtility.ExitGUI();
                   }
 
@@ -166,17 +292,48 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
 
                   if (IconButton(_upIcon, index > 0))
                   {
-                        MoveBookmark(index, -1);
+                        _manager.MoveBookmark(bookmark, -1);
                   }
 
-                  if (IconButton(_downIcon, index < _manager.bookmarks.Count - 1))
+                  if (IconButton(_downIcon, index < totalCount - 1))
                   {
-                        MoveBookmark(index, 1);
+                        _manager.MoveBookmark(bookmark, 1);
                   }
 
                   EditorGUILayout.EndHorizontal();
                   EditorGUILayout.EndVertical();
                   EditorGUILayout.EndHorizontal();
+            }
+
+            private void ShowCreateGroupDialog()
+            {
+                  string groupName = EditorInputDialog.Show("Create New Group", "Group name:", NewGroupName);
+
+                  if (!string.IsNullOrEmpty(groupName) && groupName != NewGroupName)
+                  {
+                        _manager.CreateGroup(groupName);
+                  }
+            }
+
+            private void ShowMoveToGroupMenu(SceneBookmark bookmark)
+            {
+                  var menu = new GenericMenu();
+                  List<BookmarkGroup> groups = _manager.GetCurrentSceneGroups();
+
+                  menu.AddItem(new GUIContent("Root"), string.IsNullOrEmpty(bookmark.groupId), () => _manager.MoveBookmarkToGroup(bookmark, ""));
+
+                  if (groups.Count > 0)
+                  {
+                        menu.AddSeparator("");
+
+                        foreach (BookmarkGroup group in groups)
+                        {
+                              bool isCurrentGroup = bookmark.groupId == group.id;
+                              menu.AddItem(new GUIContent(group.name), isCurrentGroup, () => _manager.MoveBookmarkToGroup(bookmark, group.id));
+                        }
+                  }
+
+                  menu.ShowAsContext();
             }
 
             private static bool IconButton(GUIContent content, bool enabled = true)
@@ -187,17 +344,13 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
                   }
             }
 
-
             private void DrawFooter()
             {
                   EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
 
                   Color originalColor = GUI.backgroundColor;
-
                   GUI.backgroundColor = useSmoothTransition ? new Color(0.4f, 1f, 0.6f) : new Color(1f, 0.6f, 0.6f);
-
                   useSmoothTransition = GUILayout.Toggle(useSmoothTransition, "Smooth Transition", _toggleButtonStyle);
-
                   GUI.backgroundColor = originalColor;
 
                   GUILayout.FlexibleSpace();
@@ -212,8 +365,7 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
                   {
                         var newBookmark = new SceneBookmark(_newBookmarkName, currentSceneView.pivot, currentSceneView.rotation, currentSceneView.size);
                         CaptureThumbnail(newBookmark);
-                        _manager.bookmarks.Add(newBookmark);
-                        _manager.Save();
+                        _manager.AddBookmark(newBookmark);
                         _newBookmarkName = "New Bookmark";
                         GUI.FocusControl(null);
                   }
@@ -231,14 +383,6 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
                         CaptureThumbnail(bookmark);
                         _manager.Save();
                   }
-            }
-
-            private void MoveBookmark(int index, int direction)
-            {
-                  SceneBookmark bookmark = _manager.bookmarks[index];
-                  _manager.bookmarks.RemoveAt(index);
-                  _manager.bookmarks.Insert(index + direction, bookmark);
-                  _manager.Save();
             }
 
             public static void GoToBookmark(SceneBookmark bookmark)
@@ -282,7 +426,6 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
                   var tempCam = tempCamGo.AddComponent<Camera>();
 
                   tempCam.CopyFrom(sceneView.camera);
-
                   Transform transform = tempCam.transform;
                   transform.position = bookmark.pivot - (bookmark.rotation * Vector3.forward * (bookmark.size * 2));
                   transform.rotation = bookmark.rotation;
@@ -325,7 +468,6 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
                   sceneView.pivot = Vector3.Lerp(startPivot, targetBookmark.pivot, t);
                   sceneView.rotation = Quaternion.Slerp(startRotation, targetBookmark.rotation, t);
                   sceneView.size = Mathf.Lerp(startSize, targetBookmark.size, t);
-
                   sceneView.Repaint();
 
                   if (t >= 1.0f)
@@ -349,6 +491,21 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks.Window
                   result.Apply();
 
                   return result;
+            }
+      }
+
+      public static class EditorInputDialog
+      {
+            public static string Show(string title, string message, string defaultValue)
+            {
+                  bool dialogResult = EditorUtility.DisplayDialog(title, $"{message}\n\nCurrent: {defaultValue}", "OK", "Cancel");
+
+                  if (dialogResult)
+                  {
+                        return defaultValue + " Copy";
+                  }
+
+                  return null;
             }
       }
 }

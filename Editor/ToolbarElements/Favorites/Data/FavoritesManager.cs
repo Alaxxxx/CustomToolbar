@@ -38,7 +38,6 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Data
 
                               AssetDatabase.CreateAsset(instance, $"{directoryPath}/FavoritesManager.asset");
                               AssetDatabase.SaveAssets();
-                              Debug.Log("FavoritesManager created.");
                         }
 
                         return instance;

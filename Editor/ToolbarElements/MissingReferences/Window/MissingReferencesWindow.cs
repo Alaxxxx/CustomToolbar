@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using OpalStudio.CustomToolbar.Editor.ToolbarElements.MissingReferences.Data;
 using UnityEditor;
 using UnityEngine;
@@ -10,87 +12,132 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.MissingReferences.Wind
       {
             private Dictionary<GameObject, List<MissingReferenceInfo>> _results;
             private Vector2 _scrollPosition;
-
-            private GUIStyle _headerLabelStyle;
-            private GUIStyle _cardStyle;
-            private GUIStyle _objectNameFoldoutStyle;
-            private GUIStyle _infoTextStyle;
-            private GUIStyle _errorTextStyle;
-            private GUIStyle _scriptGroupStyle;
-            private Texture2D _headerBackground;
-            private Texture2D _cardBackground;
-            private GUIContent _gameObjectIcon;
-            private GUIContent _scriptIcon;
-            private GUIContent _fieldIcon;
+            private readonly HashSet<string> _selectedItems = new();
+            private bool _selectAll;
+            private string _lastActionResult = "";
+            private float _lastActionTime;
             private readonly Dictionary<GameObject, bool> _gameObjectFoldouts = new();
 
             public static void ShowWindow(Dictionary<GameObject, List<MissingReferenceInfo>> results)
             {
                   var window = GetWindow<MissingReferencesWindow>("Missing References");
-                  window.minSize = new Vector2(600, 400);
+                  window.minSize = new Vector2(700, 450);
                   window.Setup(results);
                   window.Show();
             }
 
             private void Setup(Dictionary<GameObject, List<MissingReferenceInfo>> results)
             {
-                  _results = results.OrderBy(static kv => kv.Key.name).ToDictionary(static kv => kv.Key, static kv => kv.Value);
+                  var sortedResults = new Dictionary<GameObject, List<MissingReferenceInfo>>();
+
+                  List<GameObject> sortedKeys = results.Keys.OrderBy(static go => go.name).ToList();
+
+                  foreach (GameObject key in sortedKeys)
+                  {
+                        sortedResults[key] = results[key];
+                  }
+
+                  _results = sortedResults;
                   _gameObjectFoldouts.Clear();
+                  _selectedItems.Clear();
+                  _selectAll = false;
 
                   foreach (GameObject key in _results.Keys)
                   {
                         _gameObjectFoldouts[key] = true;
                   }
-
-                  InitializeStyles();
-            }
-
-            private void InitializeStyles()
-            {
-                  if (_headerLabelStyle != null)
-                  {
-                        return;
-                  }
-
-                  _headerBackground = MakeTex(1, 1, new Color(0.15f, 0.15f, 0.15f));
-                  _cardBackground = MakeTex(1, 1, new Color(0.22f, 0.22f, 0.22f));
-
-                  _headerLabelStyle = new GUIStyle(EditorStyles.largeLabel)
-                  {
-                              fontSize = 16, alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold, padding = new RectOffset(0, 0, 8, 8),
-                              normal = { textColor = Color.white }
-                  };
-
-                  _cardStyle = new GUIStyle(GUI.skin.box)
-                              { padding = new RectOffset(10, 10, 10, 10), margin = new RectOffset(10, 10, 5, 5), normal = { background = _cardBackground } };
-                  _objectNameFoldoutStyle = new GUIStyle(EditorStyles.foldout) { fontSize = 14, fontStyle = FontStyle.Bold, richText = true, fixedHeight = 30 };
-                  _scriptGroupStyle = new GUIStyle(EditorStyles.label) { richText = true, padding = { left = 18 } };
-                  _infoTextStyle = new GUIStyle(EditorStyles.label) { richText = true, padding = { left = 36 } };
-                  _errorTextStyle = new GUIStyle(_infoTextStyle) { normal = { textColor = new Color(1f, 0.6f, 0.6f) } };
-
-                  _gameObjectIcon = EditorGUIUtility.IconContent("GameObject Icon");
-                  _scriptIcon = EditorGUIUtility.IconContent("cs Script Icon");
-                  _fieldIcon = EditorGUIUtility.IconContent("DotSelection");
             }
 
             private void OnGUI()
             {
                   if (_results == null)
                   {
+                        EditorGUILayout.LabelField("Loading...", EditorStyles.centeredGreyMiniLabel);
+
                         return;
                   }
 
                   DrawHeader();
+                  DrawActionBar();
                   DrawContent();
+                  DrawActionResult();
             }
 
             private void DrawHeader()
             {
-                  Rect headerRect = GUILayoutUtility.GetRect(this.position.width, 40);
-                  GUI.DrawTexture(headerRect, _headerBackground, ScaleMode.StretchToFill);
+                  EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+
                   int totalProblems = _results.Values.Sum(static list => list.Count);
-                  string headerText = totalProblems > 0 ? $"{totalProblems} Issue(s) Found on {_results.Count} Object(s)" : "No Missing References!";
-                  EditorGUI.LabelField(headerRect, headerText, _headerLabelStyle);
+                  int missingScripts = _results.Values.Sum(static list => list.Count(static info => info.IsScriptMissing));
+                  int nullRefs = totalProblems - missingScripts;
+
+                  string headerText = totalProblems > 0
+                              ? $"{totalProblems} Issue(s) Found • {missingScripts} Missing Scripts • {nullRefs} Null References"
+                              : "🎉 No Missing References!";
+
+                  EditorGUILayout.LabelField(headerText, EditorStyles.boldLabel);
+                  EditorGUILayout.EndVertical();
+                  EditorGUILayout.Space(5);
+            }
+
+            private void DrawActionBar()
+            {
+                  if (_results.Count == 0)
+                  {
+                        return;
+                  }
+
+                  EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+
+                  EditorGUI.BeginChangeCheck();
+                  _selectAll = EditorGUILayout.ToggleLeft("Select All", _selectAll, GUILayout.Width(80));
+
+                  if (EditorGUI.EndChangeCheck())
+                  {
+                        if (_selectAll)
+                        {
+                              SelectAllItems();
+                        }
+                        else
+                        {
+                              _selectedItems.Clear();
+                        }
+                  }
+
+                  GUILayout.Space(10);
+
+                  int selectedCount = _selectedItems.Count;
+
+                  using (new EditorGUI.DisabledScope(selectedCount == 0))
+                  {
+                        if (GUILayout.Button($"Remove Components ({selectedCount})", EditorStyles.miniButton, GUILayout.Width(160)))
+                        {
+                              RemoveSelectedComponents();
+                        }
+
+                        if (GUILayout.Button($"Remove Scripts ({selectedCount})", EditorStyles.miniButton, GUILayout.Width(140)))
+                        {
+                              RemoveSelectedMissingScripts();
+                        }
+                  }
+
+                  GUILayout.FlexibleSpace();
+
+                  int totalNullRefs = CountNullReferences();
+                  int totalMissingScripts = CountMissingScripts();
+
+                  if (totalNullRefs > 0 && GUILayout.Button($"Remove All Null ({totalNullRefs})", EditorStyles.miniButton, GUILayout.Width(140)))
+                  {
+                        RemoveAllComponentsWithNullRefs();
+                  }
+
+                  if (totalMissingScripts > 0 && GUILayout.Button($"Remove All Missing ({totalMissingScripts})", EditorStyles.miniButton, GUILayout.Width(150)))
+                  {
+                        RemoveAllMissingScripts();
+                  }
+
+                  EditorGUILayout.EndHorizontal();
+                  EditorGUILayout.Space(5);
             }
 
             private void DrawContent()
@@ -99,31 +146,40 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.MissingReferences.Wind
 
                   if (_results.Count == 0)
                   {
-                        EditorGUILayout.HelpBox("Scene is clean!", MessageType.Info, true);
+                        EditorGUILayout.HelpBox("🎉 Scene is clean! No missing references found.", MessageType.Info, true);
                   }
                   else
                   {
                         foreach (KeyValuePair<GameObject, List<MissingReferenceInfo>> kvp in _results)
                         {
-                              EditorGUILayout.BeginVertical(_cardStyle);
+                              EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                               DrawResultCard(kvp.Key, kvp.Value);
                               EditorGUILayout.EndVertical();
+                              EditorGUILayout.Space(5);
                         }
                   }
 
                   EditorGUILayout.EndScrollView();
             }
 
+            private void DrawActionResult()
+            {
+                  if (!string.IsNullOrEmpty(_lastActionResult) && Time.realtimeSinceStartup - _lastActionTime < 3f)
+                  {
+                        EditorGUILayout.LabelField(_lastActionResult, EditorStyles.centeredGreyMiniLabel);
+                  }
+            }
+
             private void DrawResultCard(GameObject go, List<MissingReferenceInfo> infos)
             {
                   EditorGUILayout.BeginHorizontal();
 
-                  _gameObjectIcon.text = $" {go.name} ({infos.Count} issue(s))";
-                  _gameObjectFoldouts[go] = EditorGUILayout.Foldout(_gameObjectFoldouts[go], _gameObjectIcon, true, _objectNameFoldoutStyle);
+                  string objectDisplayName = $"{go.name} ({infos.Count} issue(s))";
+                  _gameObjectFoldouts[go] = EditorGUILayout.Foldout(_gameObjectFoldouts[go], objectDisplayName, true);
 
                   GUILayout.FlexibleSpace();
 
-                  if (GUILayout.Button("Select", GUILayout.Width(80), GUILayout.Height(28)))
+                  if (GUILayout.Button("Select", EditorStyles.miniButton, GUILayout.Width(60)))
                   {
                         Selection.activeGameObject = go;
                         EditorGUIUtility.PingObject(go);
@@ -133,7 +189,7 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.MissingReferences.Wind
 
                   if (_gameObjectFoldouts[go])
                   {
-                        GUILayout.Space(10);
+                        EditorGUI.indentLevel++;
 
                         IEnumerable<IGrouping<string, MissingReferenceInfo>> groupedByComponent =
                                     infos.GroupBy(static info => info.IsScriptMissing ? "Missing Script" : info.ComponentName);
@@ -142,53 +198,355 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.MissingReferences.Wind
                         {
                               if (group.Key == "Missing Script")
                               {
-                                    _scriptIcon.text = " <color=orange><b>Missing Script</b></color>";
-                                    EditorGUILayout.LabelField(_scriptIcon, _errorTextStyle);
+                                    DrawMissingScriptGroup(go);
                               }
                               else
                               {
-                                    _scriptIcon.text = $" Script: <b>{group.Key}</b>";
-                                    EditorGUILayout.LabelField(_scriptIcon, _scriptGroupStyle);
-
-                                    foreach (MissingReferenceInfo info in group)
-                                    {
-                                          _fieldIcon.text = $" Field: <i>{info.FieldName}</i>";
-                                          EditorGUILayout.LabelField(_fieldIcon, _errorTextStyle);
-                                    }
+                                    DrawNullReferenceGroup(go, group);
                               }
+                        }
 
-                              GUILayout.Space(5);
+                        EditorGUI.indentLevel--;
+                  }
+            }
+
+            private void DrawMissingScriptGroup(GameObject go)
+            {
+                  EditorGUILayout.BeginHorizontal();
+
+                  string itemKey = $"{go.GetInstanceID()}_missing_script";
+                  bool isSelected = _selectedItems.Contains(itemKey);
+
+                  isSelected = EditorGUILayout.Toggle(isSelected, GUILayout.Width(16));
+                  UpdateSelection(itemKey, isSelected);
+
+                  EditorGUILayout.LabelField("❌ Missing Script", EditorStyles.label);
+
+                  GUILayout.FlexibleSpace();
+
+                  if (GUILayout.Button("Remove", EditorStyles.miniButton, GUILayout.Width(60)))
+                  {
+                        RemoveMissingScriptFromObject(go);
+                  }
+
+                  EditorGUILayout.EndHorizontal();
+            }
+
+            private void DrawNullReferenceGroup(GameObject go, IGrouping<string, MissingReferenceInfo> group)
+            {
+                  EditorGUILayout.LabelField($"📜 Script: {group.Key}", EditorStyles.boldLabel);
+
+                  foreach (MissingReferenceInfo info in group)
+                  {
+                        EditorGUILayout.BeginHorizontal();
+
+                        string itemKey = $"{go.GetInstanceID()}_{info.ComponentName}_{info.FieldName}";
+                        bool isSelected = _selectedItems.Contains(itemKey);
+
+                        EditorGUI.indentLevel++;
+                        isSelected = EditorGUILayout.Toggle(isSelected, GUILayout.Width(16));
+                        UpdateSelection(itemKey, isSelected);
+
+                        EditorGUILayout.LabelField($"⚠️ Field: {info.FieldName}", EditorStyles.label);
+
+                        GUILayout.FlexibleSpace();
+
+                        if (GUILayout.Button("Remove", EditorStyles.miniButton, GUILayout.Width(60)))
+                        {
+                              RemoveComponentFromObject(go, info);
+                        }
+
+                        EditorGUI.indentLevel--;
+                        EditorGUILayout.EndHorizontal();
+                  }
+            }
+
+            private void UpdateSelection(string itemKey, bool isSelected)
+            {
+                  if (isSelected)
+                  {
+                        _selectedItems.Add(itemKey);
+                  }
+                  else
+                  {
+                        _selectedItems.Remove(itemKey);
+                        _selectAll = false;
+                  }
+            }
+
+            private void SelectAllItems()
+            {
+                  _selectedItems.Clear();
+
+                  foreach (KeyValuePair<GameObject, List<MissingReferenceInfo>> kvp in _results)
+                  {
+                        GameObject go = kvp.Key;
+                        List<MissingReferenceInfo> infos = kvp.Value;
+
+                        bool hasMissingScript = false;
+
+                        foreach (MissingReferenceInfo info in infos)
+                        {
+                              if (info.IsScriptMissing)
+                              {
+                                    hasMissingScript = true;
+
+                                    break;
+                              }
+                        }
+
+                        if (hasMissingScript)
+                        {
+                              _selectedItems.Add($"{go.GetInstanceID()}_missing_script");
+                        }
+
+                        foreach (MissingReferenceInfo info in infos)
+                        {
+                              if (!info.IsScriptMissing)
+                              {
+                                    _selectedItems.Add($"{go.GetInstanceID()}_{info.ComponentName}_{info.FieldName}");
+                              }
                         }
                   }
             }
 
-            private static Texture2D MakeTex(int width, int height, Color col)
+            private int CountNullReferences()
             {
-                  var pix = new Color[width * height];
-
-                  for (int i = 0; i < pix.Length; ++i)
-                  {
-                        pix[i] = col;
-                  }
-
-                  var result = new Texture2D(width, height);
-                  result.SetPixels(pix);
-                  result.Apply();
-
-                  return result;
+                  return _results.Values.Sum(static list => list.Count(static info => !info.IsScriptMissing));
             }
 
-            private void OnDestroy()
+            private int CountMissingScripts()
             {
-                  if (_headerBackground != null)
+                  return _results.Values.Sum(static list => list.Count(static info => info.IsScriptMissing));
+            }
+
+            private void RemoveSelectedComponents()
+            {
+                  int removedCount = 0;
+                  var itemsToRemove = new List<string>();
+
+                  foreach (string itemKey in _selectedItems)
                   {
-                        DestroyImmediate(_headerBackground);
+                        if (!itemKey.Contains("_missing_script", StringComparison.OrdinalIgnoreCase))
+                        {
+                              string[] parts = itemKey.Split('_');
+
+                              if (parts.Length >= 3)
+                              {
+                                    int instanceId = int.Parse(parts[0]);
+                                    var go = EditorUtility.InstanceIDToObject(instanceId) as GameObject;
+
+                                    if (go)
+                                    {
+                                          string componentName = parts[1];
+
+                                          string fieldName = "";
+
+                                          for (int i = 2; i < parts.Length; i++)
+                                          {
+                                                if (i > 2)
+                                                {
+                                                      fieldName += "_";
+                                                }
+
+                                                fieldName += parts[i];
+                                          }
+
+                                          var info = new MissingReferenceInfo
+                                          {
+                                                      ComponentName = componentName,
+                                                      FieldName = fieldName,
+                                                      IsScriptMissing = false
+                                          };
+
+                                          if (RemoveComponentFromObject(go, info))
+                                          {
+                                                removedCount++;
+                                                itemsToRemove.Add(itemKey);
+                                          }
+                                    }
+                              }
+                        }
                   }
 
-                  if (_cardBackground != null)
+                  foreach (string item in itemsToRemove)
                   {
-                        DestroyImmediate(_cardBackground);
+                        _selectedItems.Remove(item);
                   }
+
+                  ShowActionResult($"✅ Removed {removedCount} component(s)");
+                  RefreshResults();
+            }
+
+            private void RemoveSelectedMissingScripts()
+            {
+                  int fixedCount = 0;
+                  var itemsToRemove = new List<string>();
+
+                  foreach (string itemKey in _selectedItems)
+                  {
+                        if (itemKey.Contains("_missing_script", StringComparison.OrdinalIgnoreCase))
+                        {
+                              string[] parts = itemKey.Split('_');
+                              int instanceId = int.Parse(parts[0]);
+                              var go = EditorUtility.InstanceIDToObject(instanceId) as GameObject;
+
+                              if (go && RemoveMissingScriptFromObject(go))
+                              {
+                                    fixedCount++;
+                                    itemsToRemove.Add(itemKey);
+                              }
+                        }
+                  }
+
+                  foreach (string item in itemsToRemove)
+                  {
+                        _selectedItems.Remove(item);
+                  }
+
+                  ShowActionResult($"✅ Removed {fixedCount} missing script(s)");
+                  RefreshResults();
+            }
+
+            private void RemoveAllComponentsWithNullRefs()
+            {
+                  int removedCount = 0;
+
+                  foreach (KeyValuePair<GameObject, List<MissingReferenceInfo>> kvp in _results)
+                  {
+                        GameObject go = kvp.Key;
+                        List<MissingReferenceInfo> infos = kvp.Value;
+
+                        var processedComponents = new HashSet<string>();
+
+                        foreach (MissingReferenceInfo info in infos)
+                        {
+                              if (!info.IsScriptMissing && !processedComponents.Contains(info.ComponentName) && RemoveComponentFromObject(go, info))
+                              {
+                                    removedCount++;
+                                    processedComponents.Add(info.ComponentName);
+                              }
+                        }
+                  }
+
+                  ShowActionResult($"✅ Removed {removedCount} component(s) with null references");
+                  RefreshResults();
+            }
+
+            private void RemoveAllMissingScripts()
+            {
+                  int removedCount = 0;
+
+                  foreach (KeyValuePair<GameObject, List<MissingReferenceInfo>> kvp in _results)
+                  {
+                        GameObject go = kvp.Key;
+                        List<MissingReferenceInfo> infos = kvp.Value;
+
+                        bool hasMissingScript = false;
+
+                        foreach (MissingReferenceInfo info in infos)
+                        {
+                              if (info.IsScriptMissing)
+                              {
+                                    hasMissingScript = true;
+
+                                    break;
+                              }
+                        }
+
+                        if (hasMissingScript && RemoveMissingScriptFromObject(go))
+                        {
+                              removedCount++;
+                        }
+                  }
+
+                  ShowActionResult($"✅ Removed missing scripts from {removedCount} object(s)");
+                  RefreshResults();
+            }
+
+            private static bool RemoveComponentFromObject(GameObject go, MissingReferenceInfo info)
+            {
+                  try
+                  {
+                        MonoBehaviour[] components = go.GetComponents<MonoBehaviour>();
+
+                        foreach (MonoBehaviour component in components)
+                        {
+                              if (component && component.GetType().Name == info.ComponentName)
+                              {
+                                    if (EditorUtility.DisplayDialog("Remove Component",
+                                                    $"Remove component '{info.ComponentName}' from '{go.name}'?\n\nThis action cannot be undone.", "Remove", "Cancel"))
+                                    {
+                                          DestroyImmediate(component);
+                                          EditorUtility.SetDirty(go);
+
+                                          return true;
+                                    }
+
+                                    return false;
+                              }
+                        }
+                  }
+                  catch (Exception e)
+                  {
+                        Debug.LogWarning($"Failed to remove component {info.ComponentName} from {go.name}: {e.Message}");
+
+                        return false;
+                  }
+
+                  return false;
+            }
+
+            private static bool RemoveMissingScriptFromObject(GameObject go)
+            {
+                  try
+                  {
+                        Component[] components = go.GetComponents<Component>();
+                        int removedCount = 0;
+
+                        for (int i = components.Length - 1; i >= 0; i--)
+                        {
+                              if (!components[i])
+                              {
+                                    GameObjectUtility.RemoveMonoBehavioursWithMissingScript(go);
+                                    removedCount++;
+
+                                    break;
+                              }
+                        }
+
+                        return removedCount > 0;
+                  }
+                  catch (Exception e)
+                  {
+                        Debug.LogWarning($"Failed to remove missing script from {go.name}: {e.Message}");
+
+                        return false;
+                  }
+            }
+
+            private void ShowActionResult(string message)
+            {
+                  _lastActionResult = message;
+                  _lastActionTime = Time.realtimeSinceStartup;
+                  Repaint();
+            }
+
+            private void RefreshResults()
+            {
+                  EditorApplication.delayCall += () =>
+                  {
+                        MethodInfo scanMethod = typeof(ToolbarFindMissingReferences).GetMethod("StartScanCoroutine", BindingFlags.NonPublic | BindingFlags.Static);
+
+                        if (scanMethod != null)
+                        {
+                              scanMethod.Invoke(null, null);
+                        }
+                        else
+                        {
+                              Repaint();
+                        }
+                  };
             }
       }
 }

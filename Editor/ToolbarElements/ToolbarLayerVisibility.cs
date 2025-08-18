@@ -33,16 +33,41 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
                   var menu = new GenericMenu();
                   int currentMask = Tools.visibleLayers;
 
+                  var tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
+                  SerializedProperty layersProp = tagManager.FindProperty("layers");
+
                   for (int i = 0; i < 32; i++)
                   {
-                        string layerName = LayerMask.LayerToName(i);
+                        string layerName = "";
+
+                        if (i <= 7)
+                        {
+                              layerName = LayerMask.LayerToName(i);
+                        }
+                        else
+                        {
+                              if (i < layersProp.arraySize)
+                              {
+                                    SerializedProperty layerProp = layersProp.GetArrayElementAtIndex(i);
+                                    layerName = layerProp.stringValue;
+                              }
+                        }
 
                         if (!string.IsNullOrEmpty(layerName))
                         {
                               bool isVisible = (currentMask & (1 << i)) != 0;
                               int layerIndex = i;
-                              menu.AddItem(new GUIContent(layerName), isVisible, () => ToggleLayerVisibility(layerIndex));
+
+                              string menuItemName = $"{layerName} (Layer {i})";
+                              menu.AddItem(new GUIContent(menuItemName), isVisible, () => ToggleLayerVisibility(layerIndex));
                         }
+                  }
+
+                  if (menu.GetItemCount() == 0)
+                  {
+                        menu.AddDisabledItem(new GUIContent("No layers found"));
+
+                        return menu;
                   }
 
                   menu.AddSeparator("");
@@ -53,16 +78,37 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
 
                   menu.AddSeparator("");
 
+                  bool hasIsolateItems = false;
+
                   for (int i = 0; i < 32; i++)
                   {
-                        string layerName = LayerMask.LayerToName(i);
+                        string layerName = "";
+
+                        if (i <= 7)
+                        {
+                              layerName = LayerMask.LayerToName(i);
+                        }
+                        else
+                        {
+                              if (i < layersProp.arraySize)
+                              {
+                                    SerializedProperty layerProp = layersProp.GetArrayElementAtIndex(i);
+                                    layerName = layerProp.stringValue;
+                              }
+                        }
 
                         if (!string.IsNullOrEmpty(layerName))
                         {
                               int layerIndex = i;
-
-                              menu.AddItem(new GUIContent($"Isolate/{layerName}"), false, () => { Tools.visibleLayers = (1 << layerIndex); });
+                              string menuItemName = $"Isolate/{layerName} (Layer {i})";
+                              menu.AddItem(new GUIContent(menuItemName), false, () => { Tools.visibleLayers = (1 << layerIndex); });
+                              hasIsolateItems = true;
                         }
+                  }
+
+                  if (!hasIsolateItems)
+                  {
+                        menu.AddDisabledItem(new GUIContent("Isolate/No layers available"));
                   }
 
                   return menu;

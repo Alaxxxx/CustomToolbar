@@ -11,12 +11,12 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
 {
       sealed internal class ToolbarSceneSelection : BaseToolbarElement
       {
-            private GUIContent buttonContent;
-            private readonly List<string> scenePaths = new();
-            private Dictionary<string, int> buildSceneData;
+            private GUIContent _buttonContent;
+            private readonly List<string> _scenePaths = new();
+            private Dictionary<string, int> _buildSceneData;
 
             protected override string Name => "Scene Selection";
-            protected override string Tooltip => "Select a scene from the 'Assets/Scenes' folder.";
+            protected override string Tooltip => "Select a scene from the 'Assets/' folder.";
 
             public override void OnInit()
             {
@@ -48,12 +48,12 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
             {
                   using (new EditorGUI.DisabledScope(EditorApplication.isPlaying))
                   {
-                        if (buttonContent == null)
+                        if (_buttonContent == null)
                         {
                               return;
                         }
 
-                        if (EditorGUILayout.DropdownButton(buttonContent, FocusType.Keyboard, ToolbarStyles.CommandPopupStyle, GUILayout.Width(this.Width)))
+                        if (EditorGUILayout.DropdownButton(_buttonContent, FocusType.Keyboard, ToolbarStyles.CommandPopupStyle, GUILayout.Width(this.Width)))
                         {
                               BuildSceneMenu().ShowAsContext();
                         }
@@ -64,7 +64,7 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
             {
                   var menu = new GenericMenu();
 
-                  if (scenePaths.Count == 0)
+                  if (_scenePaths.Count == 0)
                   {
                         menu.AddDisabledItem(new GUIContent("No scenes found in project"));
 
@@ -72,8 +72,10 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
                   }
 
                   var ignoredScenes = new List<string> { "Basic", "Standard" };
+                  var buildScenes = new List<(string path, int buildIndex)>();
+                  var otherScenes = new List<string>();
 
-                  foreach (string path in scenePaths)
+                  foreach (string path in _scenePaths)
                   {
                         string sceneName = System.IO.Path.GetFileNameWithoutExtension(path);
 
@@ -82,13 +84,34 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
                               continue;
                         }
 
-                        string menuPath = path.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase) ? path.Substring("Assets/".Length) : path;
-                        menuPath = menuPath.EndsWith(".unity", StringComparison.OrdinalIgnoreCase) ? menuPath.Substring(0, menuPath.Length - ".unity".Length) : menuPath;
-
-                        if (buildSceneData.TryGetValue(path, out int buildIndex))
+                        if (_buildSceneData.TryGetValue(path, out int buildIndex))
                         {
-                              menuPath = $"{menuPath}   [{buildIndex}]";
+                              buildScenes.Add((path, buildIndex));
                         }
+                        else
+                        {
+                              otherScenes.Add(path);
+                        }
+                  }
+
+                  buildScenes.Sort(static (a, b) => a.buildIndex.CompareTo(b.buildIndex));
+
+                  foreach ((string path, int buildIndex) in buildScenes)
+                  {
+                        string sceneName = System.IO.Path.GetFileNameWithoutExtension(path);
+                        string menuPath = $"{sceneName}   [{buildIndex}]";
+                        menu.AddItem(new GUIContent(menuPath), false, () => OpenScene(path));
+                  }
+
+                  if (buildScenes.Count > 0 && otherScenes.Count > 0)
+                  {
+                        menu.AddSeparator("");
+                  }
+
+                  foreach (string path in otherScenes)
+                  {
+                        string menuPath = path.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase) ? path["Assets/".Length..] : path;
+                        menuPath = menuPath.EndsWith(".unity", StringComparison.OrdinalIgnoreCase) ? menuPath[..^".unity".Length] : menuPath;
 
                         menu.AddItem(new GUIContent(menuPath), false, () => OpenScene(path));
                   }
@@ -98,28 +121,31 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
 
             private void RefreshScenesList()
             {
-                  scenePaths.Clear();
+                  _scenePaths.Clear();
 
-                  buildSceneData = new Dictionary<string, int>();
+                  _buildSceneData = new Dictionary<string, int>();
 
                   for (int i = 0; i < EditorBuildSettings.scenes.Length; i++)
                   {
                         if (!string.IsNullOrEmpty(EditorBuildSettings.scenes[i].path))
                         {
-                              buildSceneData[EditorBuildSettings.scenes[i].path] = i;
+                              _buildSceneData[EditorBuildSettings.scenes[i].path] = i;
                         }
                   }
 
-                  string[] allSceneGuids = AssetDatabase.FindAssets("t:scene");
+                  string[] allSceneGuids = AssetDatabase.FindAssets("t:scene", new[] { "Assets" });
 
                   foreach (string guid in allSceneGuids)
                   {
                         string path = AssetDatabase.GUIDToAssetPath(guid);
 
-                        scenePaths.Add(path);
+                        if (path.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
+                        {
+                              _scenePaths.Add(path);
+                        }
                   }
 
-                  scenePaths.Sort(static (pathA, pathB) =>
+                  _scenePaths.Sort(static (pathA, pathB) =>
                   {
                         int depthA = pathA.Count(static c => c == '/');
                         int depthB = pathB.Count(static c => c == '/');
@@ -129,7 +155,7 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
 
                   Scene activeScene = SceneManager.GetActiveScene();
                   Texture sceneIcon = EditorGUIUtility.IconContent("d_SceneAsset Icon").image;
-                  buttonContent = new GUIContent(activeScene.name, sceneIcon, Tooltip);
+                  _buttonContent = new GUIContent(activeScene.name, sceneIcon, Tooltip);
             }
 
             private static void OpenScene(string path)

@@ -1,10 +1,21 @@
 # Custom Toolbar for Unity
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Release](https://img.shields.io/github/v/release/Alaxxxx/CustomToolbar?style=flat-square)](https://github.com/Alaxxxx/CustomToolbar/releases)
-[![openupm](https://img.shields.io/npm/v/com.opalstudio.customtoolbar?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.opalstudio.customtoolbar/)
-[![Unity Version](https://img.shields.io/badge/Unity-2021.3%2B-green.svg)](https://unity3d.com/get-unity/download)
-[![GitHub last commit](https://img.shields.io/github/last-commit/Alaxxxx/CustomToolbar)](https://github.com/Alaxxxx/CustomToolbar/commits/main)
+<p align="center">
+  <a href="https://github.com/Alaxxxx/CustomToolbar/stargazers"><img src="https://img.shields.io/github/stars/Alaxxxx/CustomToolbar?style=flat-square&logo=github&color=FFC107" alt="GitHub Stars"></a>
+  &nbsp;
+  <a href="https://github.com/Alaxxxx?tab=followers"><img src="https://img.shields.io/github/followers/Alaxxxx?style=flat-square&logo=github&label=Followers&color=282c34" alt="GitHub Followers"></a>
+  &nbsp;
+  <a href="https://github.com/Alaxxxx/CustomToolbar/commits/main"><img src="https://img.shields.io/github/last-commit/Alaxxxx/CustomToolbar?style=flat-square&logo=github&color=blueviolet" alt="Last Commit"></a>
+</p>
+<p align="center">
+  <a href="https://github.com/Alaxxxx/CustomToolbar/releases"><img src="https://img.shields.io/github/v/release/Alaxxxx/CustomToolbar?style=flat-square" alt="Release"></a>
+  &nbsp;
+  <a href="https://package.openupm.com"><img src="https://img.shields.io/npm/v/com.opalstudio.customtoolbar?label=openupm&registry_uri=https://package.openupm.com&style=flat-square" alt="OpenUPM"></a>
+  &nbsp;
+  <a href="https://unity.com/"><img src="https://img.shields.io/badge/Unity-2021.3+-2296F3.svg?style=flat-square&logo=unity" alt="Unity Version"></a>
+  &nbsp;
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License: MIT"></a>
+</p>
 
 An advanced and highly customizable toolbar extension for the Unity Editor, designed to streamline your workflow and integrate your custom tools seamlessly.
 
@@ -281,27 +292,31 @@ public class ToolbarMyCustomButton : BaseToolbarElement
 
 <br>
 
-## Adding Your New Element
-After saving your script, Unity will recompile. Your new element is now ready to be used!
+## ✨ Adding Your New Element
 
-1. Navigate to Edit > Project Settings > Custom Toolbar.
+After your script recompiles, your new element is ready to be used!
 
-2. Select the group where you want to add your new button.
+1.  Navigate to `Edit > Project Settings > Custom Toolbar`.
+2.  Select the group where you want to add your new button.
+3.  In the right panel, click the **`Add Element`** button. A menu will appear with all available elements.
+4.  Select your new element from the list to add it to the group.
 
-3. In the right panel, click the "Add Element" button. A menu will appear with all available elements, including the one you just created.
-
-4. Select your element from the list to add it to the group.
-
-Click "Save and Recompile". Your new button will appear on the main toolbar!
-
+> [!IMPORTANT]
+> Click **`Save and Recompile`** at the bottom of the window. Your new button will now appear on the main toolbar!
 <br>
 
-## 🤝 Contributing
+## 🤝 Contributing & Supporting
 
-Any kind of contribution is welcome and greatly appreciated!
+This project is open-source and community-driven. Any form of contribution is welcome and greatly appreciated!
 
-* **💡 Feature Requests & Ideas:** Have an idea for a new tool or an improvement? Please [open an issue](https://github.com/Alaxxxx/CustomToolbar/issues) to share your thoughts.
-* **🐛 Bug Reports:** If you find a bug, a well-documented issue with steps to reproduce it would be fantastic.
-* **🔌 Pull Requests:** Feel free to fork the repository and submit pull requests for bug fixes or new features.
+First and foremost, if you find `Custom Toolbar` useful, please **give it a star ⭐️ on GitHub!** It's the easiest way to show your support and helps the project gain visibility.
 
-Thank you !
+Here are other ways you can contribute:
+
+* **💡 Share Ideas & Report Bugs:** Have a great idea for a new feature or found a bug? [Open an issue](https://github.com/Alaxxxx/CustomToolbar/issues) to share the details. Well-documented reports are fantastic.
+
+* **🔌 Contribute Code:** Feel free to fork the repository and submit a pull request for bug fixes or new features.
+
+* **🗣️ Spread the Word:** Share this tool with other Unity developers who might find it useful.
+
+Every contribution, from a simple star to a pull request, is incredibly valuable. Thank you for your support!

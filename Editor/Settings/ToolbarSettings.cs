@@ -3,6 +3,7 @@ using OpalStudio.CustomToolbar.Editor.Core.Data;
 using OpalStudio.CustomToolbar.Editor.ToolbarElements;
 using OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites;
 using OpalStudio.CustomToolbar.Editor.ToolbarElements.MissingReferences;
+using OpalStudio.CustomToolbar.Editor.ToolbarElements.QuickAccess;
 using OpalStudio.CustomToolbar.Editor.ToolbarElements.SceneBookmarks;
 using UnityEditor;
 using UnityEngine;
@@ -95,6 +96,7 @@ namespace OpalStudio.CustomToolbar.Editor.Settings
                   var toolboxGroup = new ToolbarGroup { groupName = "Toolbox", side = ToolbarSide.Right };
                   toolboxGroup.elements.Add(new ToolbarElement { name = typeof(ToolbarToolbox).AssemblyQualifiedName });
                   toolboxGroup.elements.Add(new ToolbarElement { name = typeof(ToolbarFavorites).AssemblyQualifiedName });
+                  toolboxGroup.elements.Add(new ToolbarElement { name = typeof(ToolbarQuickAccess).AssemblyQualifiedName });
                   config.groups.Add(toolboxGroup);
             }
       }

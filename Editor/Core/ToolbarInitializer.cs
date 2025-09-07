@@ -27,8 +27,8 @@ namespace OpalStudio.CustomToolbar.Editor.Core
                   CreateElementsFromConfig(config);
 
                   // Register the toolbar drawing callbacks
-                  ToolbarCallback.OnToolbarGUILeftOfCenter = DrawToolbar(LeftElements);
-                  ToolbarCallback.OnToolbarGUIRightOfCenter = DrawToolbar(RightElements);
+                  ToolbarCallback.OnToolbarGUILeftOfCenter = DrawToolbar(LeftElements, true);
+                  ToolbarCallback.OnToolbarGUIRightOfCenter = DrawToolbar(RightElements, false);
 
                   SubscribeToEditorEvents();
 
@@ -76,11 +76,16 @@ namespace OpalStudio.CustomToolbar.Editor.Core
             }
 
             // Creates and returns an Action that draws all toolbar elements in a horizontal layout.
-            private static Action DrawToolbar(IReadOnlyList<BaseToolbarElement> elements)
+            private static Action DrawToolbar(IReadOnlyList<BaseToolbarElement> elements, bool alignRight)
             {
                   return () =>
                   {
                         GUILayout.BeginHorizontal();
+
+                        if (alignRight)
+                        {
+                              GUILayout.FlexibleSpace();
+                        }
 
                         foreach (BaseToolbarElement element in elements)
                         {

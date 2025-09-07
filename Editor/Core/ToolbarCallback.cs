@@ -59,23 +59,14 @@ namespace OpalStudio.CustomToolbar.Editor.Core
                   }
 
                   // Find the play mode buttons container by its USS class name
-                  VisualElement playModeButtons = root.Q("ToolbarZonePlayMode");
+                  VisualElement zoneLeft = root.Q("ToolbarZoneLeftAlign");
+                  VisualElement zoneRight = root.Q("ToolbarZoneRightAlign");
 
-                  // If the play mode buttons container is not found,
-                  // A warning is logged to hint that the USS class name might have changed.
-                  // This can happen if Unity updates its internal toolbar structure.
-                  if (playModeButtons == null)
+                  if (zoneLeft == null || zoneRight == null)
                   {
-                        Debug.LogError("[CUSTOM TOOLBAR]: Could not find 'ToolbarZonePlayMode'. Elements will not be drawn.");
-                        Debug.LogWarning("[CUSTOM TOOLBAR]: The USS class name 'ToolbarZonePlayMode' might have changed and needs to be updated.");
+                        Debug.LogError("[CUSTOM TOOLBAR]: Could not find Toolbar containers. Elements will not be drawn.");
+                        Debug.LogWarning("[CUSTOM TOOLBAR]: USS class 'ToolbarZoneLeftAlign' and 'ToolbarZoneRightAlign' might have changed and needs to be updated.");
 
-                        return;
-                  }
-
-                  VisualElement parent = playModeButtons.parent;
-
-                  if (parent == null)
-                  {
                         return;
                   }
 
@@ -86,15 +77,16 @@ namespace OpalStudio.CustomToolbar.Editor.Core
                               {
                                           alignContent = Align.Center,
                                           alignItems = Align.Center,
-                                          alignSelf = Align.Stretch,
+                                          alignSelf = Align.Center,
                                           display = DisplayStyle.Flex,
                                           flexDirection = FlexDirection.Row,
-                                          justifyContent = Justify.FlexEnd
+                                          justifyContent = Justify.FlexEnd,
+                                          flexGrow = 1
                               }
                   };
 
                   // Insert the left container before the play mode buttons
-                  parent.Insert(parent.IndexOf(playModeButtons), leftContainer);
+                  zoneLeft.Add(leftContainer);
 
                   // Create a container for custom GUI elements positioned to the right of play mode buttons
                   var rightContainer = new IMGUIContainer(static () => OnToolbarGUIRightOfCenter?.Invoke())
@@ -103,15 +95,16 @@ namespace OpalStudio.CustomToolbar.Editor.Core
                               {
                                           alignContent = Align.Center,
                                           alignItems = Align.Center,
-                                          alignSelf = Align.Stretch,
+                                          alignSelf = Align.Center,
                                           display = DisplayStyle.Flex,
                                           flexDirection = FlexDirection.Row,
-                                          justifyContent = Justify.FlexStart
+                                          justifyContent = Justify.FlexStart,
+                                          flexGrow = 1
                               }
                   };
 
                   // Insert the right container after the play mode buttons
-                  parent.Insert(parent.IndexOf(playModeButtons) + 1, rightContainer);
+                  zoneRight.Add(rightContainer);
             }
       }
 }

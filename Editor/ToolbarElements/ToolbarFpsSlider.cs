@@ -33,7 +33,7 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
 
                   EditorGUI.BeginChangeCheck();
 
-                  currentFPS = EditorGUILayout.IntSlider(currentFPS, MinFpsValue, MaxFpsValue, GUILayout.Width(this.Width - 65));
+                  currentFPS = Mathf.RoundToInt(EditorGUILayout.Slider(currentFPS, MinFpsValue, MaxFpsValue, GUILayout.Width(this.Width - 65)));
 
                   if (EditorGUI.EndChangeCheck())
                   {

@@ -10,8 +10,48 @@ namespace OpalStudio.CustomToolbar.Editor.Utils
 {
       public static class GitUtils
       {
+            private static bool? isGitInstalled;
+            public static bool IsGitInstalled
+            {
+                  get
+                  {
+                        if (isGitInstalled == null)
+                        {
+                              try
+                              {
+                                    var process = new Process
+                                    {
+                                                StartInfo = new ProcessStartInfo
+                                                {
+                                                            FileName = "git",
+                                                            Arguments = "--version",
+                                                            RedirectStandardOutput = true,
+                                                            RedirectStandardError = true,
+                                                            UseShellExecute = false,
+                                                            CreateNoWindow = true,
+                                                }
+                                    };
+                                    process.Start();
+                                    process.WaitForExit();
+                                    isGitInstalled = process.ExitCode == 0;
+                              }
+                              catch
+                              {
+                                    isGitInstalled = false;
+                              }
+                        }
+
+                        return isGitInstalled.Value;
+                  }
+            }
+
             private static string RunGitCommand(string workingDir, string args)
             {
+                  if (!IsGitInstalled)
+                  {
+                        return null;
+                  }
+
                   try
                   {
                         var process = new Process
@@ -54,11 +94,11 @@ namespace OpalStudio.CustomToolbar.Editor.Utils
 
             public static List<string> GetLocalBranches(string repoPath)
             {
-                  string output = RunGitCommand(repoPath, "branch");
+                  string output = RunGitCommand(repoPath, "branch --format=\"%(refname:short)\"");
 
                   return string.IsNullOrEmpty(output)
                               ? new List<string>()
-                              : output.Split('\n').Select(static b => b.Trim().Replace("* ", "", StringComparison.Ordinal)).ToList();
+                              : output.Split('\n').Select(static b => b.Trim()).Where(static b => !string.IsNullOrEmpty(b)).ToList();
             }
 
             public static void SwitchBranch(string repoPath, string branchName)

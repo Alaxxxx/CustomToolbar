@@ -27,7 +27,6 @@ namespace OpalStudio.CustomToolbar.Editor.Core
             static ToolbarCallback()
             {
                   EditorApplication.update -= TryInitialize;
-
                   EditorApplication.update += TryInitialize;
             }
 

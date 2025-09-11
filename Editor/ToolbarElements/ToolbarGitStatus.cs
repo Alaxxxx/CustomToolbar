@@ -10,9 +10,10 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
 {
       sealed internal class ToolbarGitStatus : BaseToolbarElement
       {
-            private GUIContent buttonContent;
-            private string rootRepoPath;
-            private List<string> subRepoPaths;
+            private GUIContent _buttonContent;
+            private string _rootRepoPath;
+            private List<string> _subRepoPaths;
+            private bool _isGitReady;
 
             protected override string Name => "Git Status";
             protected override string Tooltip => "View and switch Git branches. A '*' indicates uncommitted changes.";
@@ -20,7 +21,8 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
             public override void OnInit()
             {
                   this.Width = 100;
-                  buttonContent = new GUIContent();
+                  _buttonContent = new GUIContent();
+                  _isGitReady = GitUtils.IsGitInstalled;
                   RefreshStatus();
 
                   EditorApplication.projectChanged -= RefreshStatus;
@@ -29,33 +31,45 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
 
             public override void OnDrawInToolbar()
             {
-                  if (EditorGUILayout.DropdownButton(buttonContent, FocusType.Keyboard, ToolbarStyles.CommandPopupStyle, GUILayout.Width(this.Width)))
+                  using (new EditorGUI.DisabledScope(!_isGitReady))
                   {
-                        BuildGitMenu().ShowAsContext();
+                        if (EditorGUILayout.DropdownButton(_buttonContent, FocusType.Keyboard, ToolbarStyles.CommandPopupStyle, GUILayout.Width(this.Width)))
+                        {
+                              BuildGitMenu().ShowAsContext();
+                        }
                   }
             }
 
             private void RefreshStatus()
             {
+                  if (!_isGitReady)
+                  {
+                        _buttonContent.text = " Git: N/A";
+                        _buttonContent.image = EditorGUIUtility.IconContent("console.warnicon.sml").image;
+                        _buttonContent.tooltip = "Git command not found. Is Git installed and in your system's PATH?";
+
+                        return;
+                  }
+
                   List<string> allRepos = GitUtils.FindGitRepositories();
                   string projectRootPath = Directory.GetParent(Application.dataPath)!.FullName;
 
-                  rootRepoPath = allRepos.Find(p => p == projectRootPath);
-                  subRepoPaths = allRepos.Where(p => p != projectRootPath).ToList();
+                  _rootRepoPath = allRepos.Find(p => p == projectRootPath);
+                  _subRepoPaths = allRepos.Where(p => p != projectRootPath).ToList();
 
-                  int totalRepos = subRepoPaths.Count + (!string.IsNullOrEmpty(rootRepoPath) ? 1 : 0);
+                  int totalRepos = _subRepoPaths.Count + (!string.IsNullOrEmpty(_rootRepoPath) ? 1 : 0);
 
                   if (totalRepos > 0)
                   {
-                        buttonContent.text = $" Git: {totalRepos}";
-                        buttonContent.image = EditorGUIUtility.IconContent("d_CacheServerConnected").image;
-                        buttonContent.tooltip = $"{totalRepos} Git repositories found in the project.";
+                        _buttonContent.text = $" Git: {totalRepos}";
+                        _buttonContent.image = EditorGUIUtility.IconContent("d_CacheServerConnected").image;
+                        _buttonContent.tooltip = $"{totalRepos} Git repositories found in the project.";
                   }
                   else
                   {
-                        buttonContent.text = "Git: (None)";
-                        buttonContent.image = EditorGUIUtility.IconContent("d_CacheServerDisconnected").image;
-                        buttonContent.tooltip = "No Git repository found in the project.";
+                        _buttonContent.text = "Git: (None)";
+                        _buttonContent.image = EditorGUIUtility.IconContent("d_CacheServerDisconnected").image;
+                        _buttonContent.tooltip = "No Git repository found in the project.";
                   }
             }
 
@@ -63,28 +77,35 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
             {
                   var menu = new GenericMenu();
 
-                  if (!string.IsNullOrEmpty(rootRepoPath))
+                  if (!_isGitReady)
                   {
-                        string currentBranch = GitUtils.GetCurrentBranch(rootRepoPath);
-                        List<string> allBranches = GitUtils.GetLocalBranches(rootRepoPath);
-                        bool isDirty = GitUtils.HasUncommittedChanges(rootRepoPath);
+                        menu.AddDisabledItem(new GUIContent("Git not found on this system"));
+
+                        return menu;
+                  }
+
+                  if (!string.IsNullOrEmpty(_rootRepoPath))
+                  {
+                        string currentBranch = GitUtils.GetCurrentBranch(_rootRepoPath);
+                        List<string> allBranches = GitUtils.GetLocalBranches(_rootRepoPath);
+                        bool isDirty = GitUtils.HasUncommittedChanges(_rootRepoPath);
 
                         string rootMenuName = $"Unity{(isDirty ? "*" : "")}";
 
                         foreach (string branch in allBranches)
                         {
-                              menu.AddItem(new GUIContent($"{rootMenuName}/{branch}"), branch == currentBranch, () => GitUtils.SwitchBranch(rootRepoPath, branch));
+                              menu.AddItem(new GUIContent($"{rootMenuName}/{branch}"), branch == currentBranch, () => GitUtils.SwitchBranch(_rootRepoPath, branch));
                         }
                   }
 
-                  if (subRepoPaths.Any())
+                  if (_subRepoPaths.Any())
                   {
-                        if (!string.IsNullOrEmpty(rootRepoPath))
+                        if (!string.IsNullOrEmpty(_rootRepoPath))
                         {
                               menu.AddSeparator("");
                         }
 
-                        foreach (string repoPath in subRepoPaths)
+                        foreach (string repoPath in _subRepoPaths)
                         {
                               string repoName = Path.GetFileName(repoPath);
                               string currentBranch = GitUtils.GetCurrentBranch(repoPath);

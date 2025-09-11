@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Data;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
@@ -19,30 +21,27 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
                   public Texture AssetIcon { get; set; }
                   public string AssetTypeName { get; set; }
                   public string LowerCaseAlias { get; set; }
+                  public bool IsSceneLoaded { get; set; }
             }
 
 #endregion
 
 #region Fields
 
-            // Data & State
             private FavoritesManager _manager;
             private FavoriteList _currentList;
             private int _currentListIndex;
             private readonly List<CachedFavorite> _cachedFavorites = new();
             private readonly List<CachedFavorite> _filteredFavorites = new();
 
-            // UI State
             private Vector2 _scrollPosition;
             private string _searchQuery = "";
 
-            // State for reordering and editing
             private int _reorderDragIndex = -1;
             private int _reorderDropIndex = -1;
             private int _editingAliasIndex = -1;
             private string _aliasEditString = "";
 
-            // UI Styles
             private GUIStyle _searchFieldStyle;
             private GUIStyle _searchCancelButtonStyle;
             private GUIStyle _listBackgroundStyle;
@@ -50,10 +49,8 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
             private GUIStyle _cardSubtitleStyle;
             private bool _stylesInitialized;
 
-            // Events
             public event Action OnFavoritesChanged;
 
-            // Constants
             private const float CardHeight = 48f;
             private const float IconSize = 40f;
             private const float Padding = 4f;
@@ -75,12 +72,26 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
                   _currentListIndex = _manager.lastUsedListIndex;
                   LoadCurrentList();
                   OnFavoritesChanged += UpdateFavoritesCache;
+                  EditorSceneManager.sceneOpened += OnSceneOpened;
+                  EditorSceneManager.sceneClosed += OnSceneClosed;
             }
 
             private void OnDisable()
             {
                   SaveState();
                   OnFavoritesChanged -= UpdateFavoritesCache;
+                  EditorSceneManager.sceneOpened -= OnSceneOpened;
+                  EditorSceneManager.sceneClosed -= OnSceneClosed;
+            }
+
+            private void OnSceneOpened(Scene scene, OpenSceneMode mode = OpenSceneMode.Single)
+            {
+                  OnFavoritesChanged?.Invoke();
+            }
+
+            private void OnSceneClosed(Scene scene)
+            {
+                  OnFavoritesChanged?.Invoke();
             }
 
             private void OnGUI()
@@ -183,6 +194,8 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
             {
                   _cachedFavorites.Clear();
 
+                  _currentList?.items.RemoveAll(static item => item.GetObject() == null && !item.IsSceneLoaded());
+
                   if (_currentList?.items != null)
                   {
                         foreach (FavoriteItem item in _currentList.items)
@@ -202,31 +215,43 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
 
             private static CachedFavorite CreateCachedFavorite(FavoriteItem item)
             {
-                  string path = AssetDatabase.GUIDToAssetPath(item.guid);
+                  Object obj = item.GetObject();
+                  bool isSceneLoaded = item.IsSceneLoaded();
 
-                  if (string.IsNullOrEmpty(path))
+                  if (obj == null && isSceneLoaded)
                   {
                         return null;
                   }
 
-                  var obj = AssetDatabase.LoadAssetAtPath<Object>(path);
+                  Texture icon = obj != null ? AssetPreview.GetMiniThumbnail(obj) : null;
+                  icon = icon ? icon : EditorGUIUtility.IconContent(obj != null ? "GameObject Icon" : "d_GameObject Icon").image;
 
-                  if (obj == null)
+                  string typeName = "Missing (Scene Unloaded)";
+
+                  if (obj != null)
                   {
-                        return null;
+                        typeName = obj.GetType().Name;
+
+                        if (item.itemType == FavoriteItemType.GameObject)
+                        {
+                              typeName += " (Scene)";
+                        }
+                  }
+                  else if (!isSceneLoaded)
+                  {
+                        string sceneName = System.IO.Path.GetFileNameWithoutExtension(item.scenePath);
+                        typeName = $"In scene '{sceneName}'";
                   }
 
-                  Texture icon = AssetPreview.GetMiniThumbnail(obj);
-
-                  icon = icon ? icon : EditorGUIUtility.ObjectContent(obj, obj.GetType()).image;
 
                   return new CachedFavorite
                   {
                               SourceItem = item,
                               AssetObject = obj,
                               AssetIcon = icon,
-                              AssetTypeName = obj.GetType().Name,
-                              LowerCaseAlias = item.alias.ToLowerInvariant()
+                              AssetTypeName = typeName,
+                              LowerCaseAlias = item.alias.ToLowerInvariant(),
+                              IsSceneLoaded = isSceneLoaded
                   };
             }
 
@@ -365,22 +390,27 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
                         return;
                   }
 
-                  if (_filteredFavorites.Count == 0)
-                  {
-                        string message = string.IsNullOrEmpty(_searchQuery) ? "This list is empty. Drag assets here to add them." : $"No results for '{_searchQuery}'.";
-                        EditorGUILayout.HelpBox(message, MessageType.Info);
-                  }
-                  else
-                  {
-                        DrawFavoritesList();
-                  }
-            }
-
-            private void DrawFavoritesList()
-            {
                   Rect dropArea = GUILayoutUtility.GetRect(0, _filteredFavorites.Count * (CardHeight + Padding) + Padding * 2, GUILayout.ExpandWidth(true));
                   GUI.Box(dropArea, GUIContent.none, _listBackgroundStyle);
 
+                  if (_filteredFavorites.Count == 0)
+                  {
+                        string message = string.IsNullOrEmpty(_searchQuery)
+                                    ? "This list is empty. Drag assets or scene objects here to add them."
+                                    : $"No results for '{_searchQuery}'.";
+                        var labelStyle = new GUIStyle(EditorStyles.label) { alignment = TextAnchor.MiddleCenter };
+                        GUI.Label(dropArea, message, labelStyle);
+                  }
+                  else
+                  {
+                        DrawFavoritesList(dropArea);
+                  }
+
+                  DrawReorderDropIndicator(dropArea);
+            }
+
+            private void DrawFavoritesList(Rect dropArea)
+            {
                   for (int i = 0; i < _filteredFavorites.Count; i++)
                   {
                         CachedFavorite cachedItem = _filteredFavorites[i];
@@ -388,22 +418,23 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
                         var cardRect = new Rect(dropArea.x + Padding, dropArea.y + Padding + i * (CardHeight + Padding), dropArea.width - Padding * 2, CardHeight);
                         DrawItemCard(cardRect, cachedItem, i);
                   }
-
-                  DrawReorderDropIndicator(dropArea);
             }
 
             private void DrawItemCard(Rect cardRect, CachedFavorite cachedItem, int index)
             {
-                  bool isHover = cardRect.Contains(Event.current.mousePosition);
-                  bool isReorderingSource = _reorderDragIndex == index;
-
-                  DrawCardBackground(cardRect, isHover, isReorderingSource);
-                  DrawCardContent(cardRect, cachedItem, index);
-                  HandleCardEvents(cardRect, cachedItem, index);
-
-                  if (isHover)
+                  using (new EditorGUI.DisabledScope(!cachedItem.IsSceneLoaded))
                   {
-                        Repaint();
+                        bool isHover = cardRect.Contains(Event.current.mousePosition);
+                        bool isReorderingSource = _reorderDragIndex == index;
+
+                        DrawCardBackground(cardRect, isHover, isReorderingSource);
+                        DrawCardContent(cardRect, cachedItem, index);
+                        HandleCardEvents(cardRect, cachedItem, index);
+
+                        if (isHover)
+                        {
+                              Repaint();
+                        }
                   }
             }
 
@@ -447,7 +478,8 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
                         var titleRect = new Rect(textBlockRect.x, textBlockRect.y, textBlockRect.width, textBlockRect.height * 0.6f);
                         var subtitleRect = new Rect(textBlockRect.x, textBlockRect.y + titleRect.height, textBlockRect.width, textBlockRect.height * 0.4f);
 
-                        EditorGUI.LabelField(titleRect, new GUIContent(cachedItem.SourceItem.alias, cachedItem.AssetObject.name), _cardTitleStyle);
+                        string tooltip = cachedItem.AssetObject != null ? cachedItem.AssetObject.name : "Object is missing or its scene is not loaded.";
+                        EditorGUI.LabelField(titleRect, new GUIContent(cachedItem.SourceItem.alias, tooltip), _cardTitleStyle);
                         EditorGUI.LabelField(subtitleRect, cachedItem.AssetTypeName, _cardSubtitleStyle);
                   }
             }
@@ -475,13 +507,14 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
             {
                   Event e = Event.current;
 
-                  if (e.type is EventType.DragUpdated or EventType.DragPerform && DragAndDrop.GetGenericData("FavoriteReorder") == null && HasValidDraggedAssets())
+                  if (e.type is EventType.DragUpdated or EventType.DragPerform && DragAndDrop.GetGenericData("FavoriteReorder") == null &&
+                      DragAndDrop.objectReferences.Any(static o => o != null))
                   {
                         DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
 
                         if (e.type == EventType.DragPerform)
                         {
-                              ProcessDraggedAssets();
+                              ProcessDraggedObjects();
                         }
 
                         e.Use();
@@ -492,7 +525,7 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
             {
                   Event e = Event.current;
 
-                  if (!cardRect.Contains(e.mousePosition))
+                  if (!cardRect.Contains(e.mousePosition) || !cachedItem.IsSceneLoaded)
                   {
                         return;
                   }
@@ -500,17 +533,51 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
                   switch (e.type)
                   {
                         case EventType.MouseDown when e.button == 0:
-                              if (e.clickCount == 1 && string.IsNullOrEmpty(_searchQuery))
+                              if (e.clickCount == 2)
                               {
-                                    DragAndDrop.PrepareStartDrag();
-                                    DragAndDrop.SetGenericData("FavoriteReorder", index);
-                                    DragAndDrop.objectReferences = new[] { cachedItem.AssetObject };
-                                    _reorderDragIndex = index;
+                                    if (cachedItem.AssetObject)
+                                    {
+                                          EditorGUIUtility.PingObject(cachedItem.AssetObject);
+
+                                          if (cachedItem.SourceItem.itemType == FavoriteItemType.Asset)
+                                          {
+                                                AssetDatabase.OpenAsset(cachedItem.AssetObject);
+                                          }
+                                          else if (cachedItem.SourceItem.itemType == FavoriteItemType.GameObject)
+                                          {
+                                                Selection.activeObject = cachedItem.AssetObject;
+
+                                                if (SceneView.lastActiveSceneView)
+                                                {
+                                                      SceneView.lastActiveSceneView.FrameSelected();
+                                                }
+                                          }
+                                    }
+
                                     e.Use();
                               }
-                              else if (e.clickCount == 2)
+                              else if (e.clickCount == 1)
                               {
-                                    AssetDatabase.OpenAsset(cachedItem.AssetObject);
+                                    if (cachedItem.AssetObject != null)
+                                    {
+                                          bool isFolder = cachedItem.SourceItem.itemType == FavoriteItemType.Asset &&
+                                                          AssetDatabase.IsValidFolder(AssetDatabase.GetAssetPath(cachedItem.AssetObject));
+
+                                          if (!isFolder)
+                                          {
+                                                Selection.activeObject = cachedItem.AssetObject;
+                                          }
+                                    }
+
+                                    DragAndDrop.PrepareStartDrag();
+                                    DragAndDrop.objectReferences = new[] { cachedItem.AssetObject };
+
+                                    if (string.IsNullOrEmpty(_searchQuery))
+                                    {
+                                          DragAndDrop.SetGenericData("FavoriteReorder", index);
+                                          _reorderDragIndex = index;
+                                    }
+
                                     e.Use();
                               }
 
@@ -528,7 +595,7 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
                               break;
 
                         case EventType.MouseDrag:
-                              if (_reorderDragIndex != -1)
+                              if (DragAndDrop.objectReferences.Length > 0 && DragAndDrop.objectReferences[0] == cachedItem.AssetObject)
                               {
                                     DragAndDrop.StartDrag(cachedItem.SourceItem.alias);
                                     e.Use();
@@ -607,6 +674,29 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
             {
                   var menu = new GenericMenu();
 
+                  menu.AddItem(new GUIContent("Select"), false, () =>
+                  {
+                        Selection.activeObject = cachedItem.AssetObject;
+                        EditorGUIUtility.PingObject(cachedItem.AssetObject);
+                  });
+
+                  if (cachedItem.SourceItem.itemType == FavoriteItemType.Asset)
+                  {
+                        string path = AssetDatabase.GetAssetPath(cachedItem.AssetObject);
+                        menu.AddItem(new GUIContent("Show in Explorer"), false, () => EditorUtility.RevealInFinder(path));
+
+                        if (cachedItem.AssetObject is GameObject)
+                        {
+                              menu.AddItem(new GUIContent("Instantiate in Scene"), false, () =>
+                              {
+                                    var instance = (GameObject)PrefabUtility.InstantiatePrefab(cachedItem.AssetObject);
+                                    Undo.RegisterCreatedObjectUndo(instance, $"Instantiate {instance.name}");
+                                    Selection.activeObject = instance;
+                              });
+                        }
+                  }
+
+                  menu.AddSeparator("");
                   menu.AddItem(new GUIContent("Edit Alias"), false, () => StartEditingAlias(index));
                   menu.AddItem(new GUIContent("Remove"), false, () => RemoveFavorite(cachedItem));
                   menu.ShowAsContext();
@@ -673,17 +763,17 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
                   OnFavoritesChanged?.Invoke();
             }
 
-            private static bool HasValidDraggedAssets() =>
-                        DragAndDrop.objectReferences.Any(static o => o != null && !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(o)));
-
-            private void ProcessDraggedAssets()
+            private void ProcessDraggedObjects()
             {
                   DragAndDrop.AcceptDrag();
                   Undo.RecordObject(_manager, "Add Favorites");
 
                   foreach (Object draggedObject in DragAndDrop.objectReferences)
                   {
-                        AddObjectToFavorites(draggedObject);
+                        if (draggedObject != null)
+                        {
+                              AddObjectToFavorites(draggedObject);
+                        }
                   }
 
                   EditorUtility.SetDirty(_manager);
@@ -692,23 +782,16 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
 
             private void AddObjectToFavorites(Object obj)
             {
-                  string path = AssetDatabase.GetAssetPath(obj);
+                  var newItem = new FavoriteItem(obj, obj.name);
 
-                  if (string.IsNullOrEmpty(path))
+                  if (_currentList.items.Contains(newItem))
                   {
-                        return;
-                  }
-
-                  string guid = AssetDatabase.AssetPathToGUID(path);
-
-                  if (_currentList.items.Any(item => item.guid == guid))
-                  {
-                        Debug.LogWarning($"L'asset '{obj.name}' est déjà dans cette liste de favoris.");
+                        Debug.LogWarning($"L'objet '{obj.name}' est déjà dans cette liste de favoris.");
 
                         return;
                   }
 
-                  _currentList.items.Add(new FavoriteItem(guid, obj.name));
+                  _currentList.items.Add(newItem);
             }
 
 #endregion

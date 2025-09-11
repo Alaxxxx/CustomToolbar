@@ -1,13 +1,39 @@
-﻿using UnityEditor;
+﻿using System;
+using System.IO;
+using System.Linq;
+using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace OpalStudio.CustomToolbar.Editor.Utils
 {
       internal static class SceneAssetsUtils
       {
-            private const string LastActiveSceneStateKey = "CustomToolbar.LastActiveScene";
+            private const string LastSceneSetupStateKey = "CustomToolbar.LastSceneSetup";
+
+            [Serializable]
+            private class SerializableSceneSetup
+            {
+                  public string path;
+                  public bool isLoaded;
+                  public bool isActive;
+
+                  public static SerializableSceneSetup FromSceneSetup(SceneSetup setup)
+                  {
+                        return new SerializableSceneSetup
+                        {
+                                    path = setup.path,
+                                    isLoaded = setup.isLoaded,
+                                    isActive = setup.isActive
+                        };
+                  }
+            }
+
+            [Serializable]
+            private class SceneSetupWrapper
+            {
+                  public SerializableSceneSetup[] setups;
+            }
 
             public static void StartPlayModeFromFirstScene()
             {
@@ -25,7 +51,17 @@ namespace OpalStudio.CustomToolbar.Editor.Utils
 
                   if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                   {
-                        SessionState.SetString(LastActiveSceneStateKey, SceneManager.GetActiveScene().path);
+                        SceneSetup[] currentSceneSetup = EditorSceneManager.GetSceneManagerSetup();
+
+                        var wrapper = new SceneSetupWrapper
+                        {
+                                    setups = currentSceneSetup.Select(SerializableSceneSetup.FromSceneSetup).ToArray()
+                        };
+
+                        string jsonSetup = JsonUtility.ToJson(wrapper);
+
+                        SessionState.SetString(LastSceneSetupStateKey, jsonSetup);
+
                         string firstScenePath = EditorBuildSettings.scenes[0].path;
                         EditorSceneManager.OpenScene(firstScenePath);
                         EditorApplication.isPlaying = true;
@@ -34,20 +70,38 @@ namespace OpalStudio.CustomToolbar.Editor.Utils
 
             public static void RestoreSceneAfterPlay()
             {
-                  string sceneToRestore = SessionState.GetString(LastActiveSceneStateKey, string.Empty);
+                  string jsonSetup = SessionState.GetString(LastSceneSetupStateKey, string.Empty);
 
-                  if (!string.IsNullOrEmpty(sceneToRestore))
+                  if (!string.IsNullOrEmpty(jsonSetup))
                   {
-                        if (System.IO.File.Exists(sceneToRestore))
+                        var wrapper = JsonUtility.FromJson<SceneSetupWrapper>(jsonSetup);
+                        SerializableSceneSetup[] serializableSetups = wrapper.setups;
+
+                        if (serializableSetups is { Length: > 0 })
                         {
-                              EditorSceneManager.OpenScene(sceneToRestore);
-                        }
-                        else
-                        {
-                              Debug.LogWarning($"[CustomToolbar] Could not restore previous scene. File not found at path: {sceneToRestore}");
+                              foreach (SerializableSceneSetup setup in serializableSetups)
+                              {
+                                    if (!File.Exists(setup.path))
+                                    {
+                                          Debug.LogWarning($"[CustomToolbar] Could not restore scene setup. File not found at path: {setup.path}");
+                                          SessionState.EraseString(LastSceneSetupStateKey);
+
+                                          return;
+                                    }
+                              }
+
+                              SceneSetup[] sceneSetupsToRestore = serializableSetups.Select(static s => new SceneSetup
+                                                                                    {
+                                                                                                path = s.path,
+                                                                                                isLoaded = s.isLoaded,
+                                                                                                isActive = s.isActive
+                                                                                    })
+                                                                                    .ToArray();
+
+                              EditorSceneManager.RestoreSceneManagerSetup(sceneSetupsToRestore);
                         }
 
-                        SessionState.EraseString(LastActiveSceneStateKey);
+                        SessionState.EraseString(LastSceneSetupStateKey);
                   }
             }
       }

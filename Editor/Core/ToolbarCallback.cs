@@ -15,14 +15,115 @@ namespace OpalStudio.CustomToolbar.Editor.Core
       [InitializeOnLoad]
       public static class ToolbarCallback
       {
-            // Unity's internal toolbar reference
+            public static Action OnToolbarGUILeftOfCenter;
+            public static Action OnToolbarGUIRightOfCenter;
+
+#if UNITY_6000_3_OR_NEWER
+            private static int setupAttempts;
+            private const int MaxSetupAttempts = 200;
+
+            static ToolbarCallback()
+            {
+                  EditorApplication.update -= Initialize;
+                  EditorApplication.update += Initialize;
+            }
+
+            private static void Initialize()
+            {
+                  setupAttempts++;
+
+                  Type mainToolbarWindowType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.MainToolbarWindow");
+
+                  if (mainToolbarWindowType == null)
+                  {
+                        EditorApplication.update -= Initialize;
+
+                        return;
+                  }
+
+                  Object[] toolbars = Resources.FindObjectsOfTypeAll(mainToolbarWindowType);
+
+                  if (toolbars.Length == 0)
+                  {
+                        if (setupAttempts > MaxSetupAttempts)
+                        {
+                              Debug.LogWarning("[CustomToolbar] Could not find MainToolbarWindow instance after multiple attempts. Aborting.");
+                              EditorApplication.update -= Initialize;
+                        }
+
+                        return;
+                  }
+
+                  var toolbarWindow = (EditorWindow)toolbars[0];
+                  VisualElement root = toolbarWindow.rootVisualElement;
+
+                  if (root == null)
+                  {
+                        EditorApplication.update -= Initialize;
+
+                        return;
+                  }
+
+                  VisualElement middleContainer = root.Q(className: "unity-overlay-container__middle-container");
+
+                  if (middleContainer == null)
+                  {
+                        if (setupAttempts > MaxSetupAttempts)
+                        {
+                              Debug.LogWarning("[CustomToolbar] Found MainToolbarWindow, but its middle-container is not ready. Aborting.");
+                              EditorApplication.update -= Initialize;
+                        }
+
+                        return;
+                  }
+
+                  VisualElement parentContainer = middleContainer.parent;
+
+                  if (parentContainer == null)
+                  {
+                        EditorApplication.update -= Initialize;
+
+                        return;
+                  }
+
+                  var leftDock = new VisualElement
+                  {
+                              name = "OpalStudio_LeftDock",
+                              style =
+                              {
+                                          flexGrow = 1,
+                                          flexDirection = FlexDirection.Row,
+                                          justifyContent = Justify.FlexEnd,
+                                          alignItems = Align.Center
+                              }
+                  };
+
+                  var rightDock = new VisualElement
+                  {
+                              name = "OpalStudio_RightDock",
+                              style =
+                              {
+                                          flexGrow = 1,
+                                          flexDirection = FlexDirection.Row,
+                                          justifyContent = Justify.FlexStart,
+                                          alignItems = Align.Center
+                              }
+                  };
+
+                  parentContainer.Insert(parentContainer.IndexOf(middleContainer), leftDock);
+                  parentContainer.Insert(parentContainer.IndexOf(middleContainer) + 1, rightDock);
+
+                  leftDock.Add(new IMGUIContainer(static () => OnToolbarGUILeftOfCenter?.Invoke()));
+                  rightDock.Add(new IMGUIContainer(static () => OnToolbarGUIRightOfCenter?.Invoke()));
+
+                  EditorApplication.update -= Initialize;
+            }
+
+#else
+
             private readonly static Type UnityToolbarType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.Toolbar");
             private readonly static FieldInfo UnityToolbarRootField = UnityToolbarType?.GetField("m_Root", BindingFlags.NonPublic | BindingFlags.Instance);
             private static ScriptableObject currentToolbar;
-
-            // GUI callbacks for custom elements
-            public static Action OnToolbarGUILeftOfCenter;
-            public static Action OnToolbarGUIRightOfCenter;
 
             static ToolbarCallback()
             {
@@ -36,7 +137,6 @@ namespace OpalStudio.CustomToolbar.Editor.Core
                   {
                         Object[] toolbars = Resources.FindObjectsOfTypeAll(UnityToolbarType);
 
-                        // Prevent a bug where the toolbar is not found but should be present
                         if (toolbars.Length == 0)
                         {
                               return;
@@ -46,7 +146,6 @@ namespace OpalStudio.CustomToolbar.Editor.Core
                   }
 
                   InjectToolbarElements();
-
                   EditorApplication.update -= TryInitialize;
             }
 
@@ -57,53 +156,42 @@ namespace OpalStudio.CustomToolbar.Editor.Core
                         return;
                   }
 
-                  // Find the play mode buttons container by its USS class name
                   VisualElement zoneLeft = root.Q("ToolbarZoneLeftAlign");
                   VisualElement zoneRight = root.Q("ToolbarZoneRightAlign");
 
                   if (zoneLeft == null || zoneRight == null)
                   {
                         Debug.LogError("[CUSTOM TOOLBAR]: Could not find Toolbar containers. Elements will not be drawn.");
-                        Debug.LogWarning("[CUSTOM TOOLBAR]: USS class 'ToolbarZoneLeftAlign' and 'ToolbarZoneRightAlign' might have changed and needs to be updated.");
 
                         return;
                   }
 
-                  // Create a container for custom GUI elements positioned to the left of play mode buttons
                   var leftContainer = new IMGUIContainer(static () => OnToolbarGUILeftOfCenter?.Invoke())
                   {
                               style =
                               {
-                                          alignContent = Align.Center,
-                                          alignItems = Align.Center,
-                                          alignSelf = Align.Center,
-                                          display = DisplayStyle.Flex,
+                                          flexGrow = 1,
                                           flexDirection = FlexDirection.Row,
                                           justifyContent = Justify.FlexEnd,
-                                          flexGrow = 1
+                                          alignItems = Align.Center
                               }
                   };
-
-                  // Insert the left container before the play mode buttons
                   zoneLeft.Add(leftContainer);
 
-                  // Create a container for custom GUI elements positioned to the right of play mode buttons
                   var rightContainer = new IMGUIContainer(static () => OnToolbarGUIRightOfCenter?.Invoke())
                   {
                               style =
                               {
-                                          alignContent = Align.Center,
-                                          alignItems = Align.Center,
-                                          alignSelf = Align.Center,
-                                          display = DisplayStyle.Flex,
+                                          flexGrow = 1,
                                           flexDirection = FlexDirection.Row,
                                           justifyContent = Justify.FlexStart,
-                                          flexGrow = 1
+                                          alignItems = Align.Center
                               }
                   };
-
-                  // Insert the right container after the play mode buttons
+                  rightContainer.style.flexGrow = 1;
                   zoneRight.Add(rightContainer);
             }
+
+#endif
       }
 }

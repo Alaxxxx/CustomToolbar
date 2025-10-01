@@ -55,7 +55,11 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.QuickAccess.Data
                   return ItemType switch
                   {
                               QuickAccessItemType.Asset or QuickAccessItemType.Scene => AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(Guid)),
+#if UNITY_6000_3_OR_NEWER
+                              QuickAccessItemType.GameObject => EditorUtility.EntityIdToObject(InstanceID),
+#else
                               QuickAccessItemType.GameObject => EditorUtility.InstanceIDToObject(InstanceID),
+#endif
                               _ => null
                   };
             }

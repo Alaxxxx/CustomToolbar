@@ -50,7 +50,12 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Data
                         case FavoriteItemType.Asset:
                               return AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(guid));
                         case FavoriteItemType.GameObject:
+#if UNITY_6000_3_OR_NEWER
+                              return !IsSceneLoaded() ? null : EditorUtility.EntityIdToObject(instanceID);
+#else
+
                               return !IsSceneLoaded() ? null : EditorUtility.InstanceIDToObject(instanceID);
+#endif
 
                         default:
                               return null;

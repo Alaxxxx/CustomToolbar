@@ -22,6 +22,7 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.QuickAccess
             public override void OnInit()
             {
                   this.Width = 35;
+                  QuickAccessTracker.StartTracking();
                   Texture icon = EditorGUIUtility.IconContent("d_UndoHistory").image;
                   _buttonContent = new GUIContent(icon, this.Tooltip);
             }

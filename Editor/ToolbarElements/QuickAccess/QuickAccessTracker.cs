@@ -6,16 +6,20 @@ using UnityEngine.SceneManagement;
 
 namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.QuickAccess
 {
-      [InitializeOnLoad]
       internal static class QuickAccessTracker
       {
-            static QuickAccessTracker()
+            public static void StartTracking()
             {
                   Selection.selectionChanged -= OnSelectionChanged;
                   Selection.selectionChanged += OnSelectionChanged;
-
                   EditorSceneManager.sceneOpened -= OnSceneOpened;
                   EditorSceneManager.sceneOpened += OnSceneOpened;
+            }
+
+            public static void StopTracking()
+            {
+                  Selection.selectionChanged -= OnSelectionChanged;
+                  EditorSceneManager.sceneOpened -= OnSceneOpened;
             }
 
             private static void OnSceneOpened(Scene scene, OpenSceneMode mode)

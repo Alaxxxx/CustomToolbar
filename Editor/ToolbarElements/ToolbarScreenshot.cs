@@ -3,6 +3,7 @@ using System.IO;
 using OpalStudio.CustomToolbar.Editor.Core;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
 {
@@ -98,8 +99,8 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
                   byte[] bytes = screenShot.EncodeToPNG();
                   File.WriteAllBytes(fullPath, bytes);
 
-                  UnityEngine.Object.DestroyImmediate(rt);
-                  UnityEngine.Object.DestroyImmediate(screenShot);
+                  Object.DestroyImmediate(rt);
+                  Object.DestroyImmediate(screenShot);
 
                   LogScreenshot(fullPath);
             }
@@ -115,36 +116,42 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
                         return;
                   }
 
-                  Camera sceneCamera = sceneView.camera;
+                  bool prevIsSceneLightingEnabled = sceneView.sceneLighting;
 
-                  RenderTexture prevTargetTexture = sceneCamera.targetTexture;
-                  CameraClearFlags prevClearFlags = sceneCamera.clearFlags;
-                  Color prevBackgroundColor = sceneCamera.backgroundColor;
+                  var tempCamGo = new GameObject("ScreenshotCamera") { hideFlags = HideFlags.HideAndDontSave };
+                  var tempCam = tempCamGo.AddComponent<Camera>();
+                  tempCam.CopyFrom(sceneView.camera);
 
-                  RenderTextureFormat rtFormat = withTransparency ? RenderTextureFormat.ARGB32 : RenderTextureFormat.Default;
-                  TextureFormat texFormat = withTransparency ? TextureFormat.ARGB32 : TextureFormat.RGB24;
-
-                  var renderTexture = new RenderTexture(sceneCamera.pixelWidth, sceneCamera.pixelHeight, 24, rtFormat);
+                  const RenderTextureFormat rtFormat = RenderTextureFormat.ARGB32;
+                  const TextureFormat texFormat = TextureFormat.ARGB32;
+                  var renderTexture = new RenderTexture(sceneView.camera.pixelWidth, sceneView.camera.pixelHeight, 24, rtFormat);
                   var texture2D = new Texture2D(renderTexture.width, renderTexture.height, texFormat, false);
 
-                  sceneCamera.targetTexture = renderTexture;
+                  tempCam.targetTexture = renderTexture;
 
                   if (withTransparency)
                   {
-                        sceneCamera.clearFlags = CameraClearFlags.SolidColor;
-                        sceneCamera.backgroundColor = new Color(0, 0, 0, 0);
+                        tempCam.clearFlags = CameraClearFlags.SolidColor;
+                        tempCam.backgroundColor = new Color(0, 0, 0, 0);
+                        sceneView.sceneLighting = false;
+                  }
+                  else
+                  {
+                        tempCam.clearFlags = sceneView.camera.clearFlags;
+                        tempCam.backgroundColor = sceneView.camera.backgroundColor;
+                        sceneView.sceneLighting = prevIsSceneLightingEnabled;
                   }
 
-                  sceneCamera.Render();
+                  tempCam.Render();
 
                   RenderTexture.active = renderTexture;
                   texture2D.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
                   texture2D.Apply();
                   RenderTexture.active = null;
 
-                  sceneCamera.targetTexture = prevTargetTexture;
-                  sceneCamera.clearFlags = prevClearFlags;
-                  sceneCamera.backgroundColor = prevBackgroundColor;
+                  sceneView.sceneLighting = prevIsSceneLightingEnabled;
+
+                  Object.DestroyImmediate(tempCamGo);
 
                   byte[] bytes = texture2D.EncodeToPNG();
                   EnsureFolderExists();
@@ -152,8 +159,8 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
                   string fullPath = GetUniqueScreenshotPath(fileName);
                   File.WriteAllBytes(fullPath, bytes);
 
-                  UnityEngine.Object.DestroyImmediate(texture2D);
-                  UnityEngine.Object.DestroyImmediate(renderTexture);
+                  Object.DestroyImmediate(texture2D);
+                  Object.DestroyImmediate(renderTexture);
 
                   LogScreenshot(fullPath);
             }
@@ -176,7 +183,7 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements
             private static void LogScreenshot(string path)
             {
                   AssetDatabase.Refresh();
-                  Debug.Log($"Screenshot saved to: <a href=\"{path}\">{path}</a>", AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path));
+                  Debug.Log($"Screenshot saved to: <a href=\"{path}\">{path}</a>", AssetDatabase.LoadAssetAtPath<Object>(path));
             }
       }
 }

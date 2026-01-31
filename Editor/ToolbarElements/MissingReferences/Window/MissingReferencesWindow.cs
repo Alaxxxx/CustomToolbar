@@ -211,7 +211,13 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.MissingReferences.Wind
             {
                   EditorGUILayout.BeginHorizontal();
 
+#if UNITY_6000_3_OR_NEWER
+                  #pragma warning disable CS0618
                   string itemKey = $"{go.GetInstanceID()}_missing_script";
+                  #pragma warning restore CS0618
+#else
+                  string itemKey = $"{go.GetInstanceID()}_missing_script";
+#endif
                   bool isSelected = _selectedItems.Contains(itemKey);
 
                   isSelected = EditorGUILayout.Toggle(isSelected, GUILayout.Width(16));
@@ -237,7 +243,13 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.MissingReferences.Wind
                   {
                         EditorGUILayout.BeginHorizontal();
 
+#if UNITY_6000_3_OR_NEWER
+                        #pragma warning disable CS0618
                         string itemKey = $"{go.GetInstanceID()}_{info.ComponentName}_{info.FieldName}";
+                        #pragma warning restore CS0618
+#else
+                        string itemKey = $"{go.GetInstanceID()}_{info.ComponentName}_{info.FieldName}";
+#endif
                         bool isSelected = _selectedItems.Contains(itemKey);
 
                         EditorGUI.indentLevel++;
@@ -294,14 +306,26 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.MissingReferences.Wind
 
                         if (hasMissingScript)
                         {
+#if UNITY_6000_3_OR_NEWER
+                              #pragma warning disable CS0618
                               _selectedItems.Add($"{go.GetInstanceID()}_missing_script");
+                              #pragma warning restore CS0618
+#else
+                              _selectedItems.Add($"{go.GetInstanceID()}_missing_script");
+#endif
                         }
 
                         foreach (MissingReferenceInfo info in infos)
                         {
                               if (!info.IsScriptMissing)
                               {
+#if UNITY_6000_3_OR_NEWER
+                                    #pragma warning disable CS0618
                                     _selectedItems.Add($"{go.GetInstanceID()}_{info.ComponentName}_{info.FieldName}");
+                                    #pragma warning restore CS0618
+#else
+                                    _selectedItems.Add($"{go.GetInstanceID()}_{info.ComponentName}_{info.FieldName}");
+#endif
                               }
                         }
                   }
@@ -332,7 +356,9 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.MissingReferences.Wind
                               {
                                     int instanceId = int.Parse(parts[0]);
 #if UNITY_6000_3_OR_NEWER
+                                    #pragma warning disable CS0618
                                     var go = EditorUtility.EntityIdToObject(instanceId) as GameObject;
+                                    #pragma warning restore CS0618
 #else
                                     var go = EditorUtility.InstanceIDToObject(instanceId) as GameObject;
 #endif
@@ -391,7 +417,9 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.MissingReferences.Wind
                               string[] parts = itemKey.Split('_');
                               int instanceId = int.Parse(parts[0]);
 #if UNITY_6000_3_OR_NEWER
+                              #pragma warning disable CS0618
                               var go = EditorUtility.EntityIdToObject(instanceId) as GameObject;
+                              #pragma warning restore CS0618
 #else
                               var go = EditorUtility.InstanceIDToObject(instanceId) as GameObject;
 #endif

@@ -232,14 +232,14 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
                   {
                         typeName = obj.GetType().Name;
 
-                        if (item.itemType == FavoriteItemType.GameObject)
+                        if (item.ItemType == FavoriteItemType.GameObject)
                         {
                               typeName += " (Scene)";
                         }
                   }
                   else if (!isSceneLoaded)
                   {
-                        string sceneName = System.IO.Path.GetFileNameWithoutExtension(item.scenePath);
+                        string sceneName = System.IO.Path.GetFileNameWithoutExtension(item.ScenePath);
                         typeName = $"In scene '{sceneName}'";
                   }
 
@@ -539,11 +539,11 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
                                     {
                                           EditorGUIUtility.PingObject(cachedItem.AssetObject);
 
-                                          if (cachedItem.SourceItem.itemType == FavoriteItemType.Asset)
+                                          if (cachedItem.SourceItem.ItemType == FavoriteItemType.Asset)
                                           {
                                                 AssetDatabase.OpenAsset(cachedItem.AssetObject);
                                           }
-                                          else if (cachedItem.SourceItem.itemType == FavoriteItemType.GameObject)
+                                          else if (cachedItem.SourceItem.ItemType == FavoriteItemType.GameObject)
                                           {
                                                 Selection.activeObject = cachedItem.AssetObject;
 
@@ -560,7 +560,7 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
                               {
                                     if (cachedItem.AssetObject != null)
                                     {
-                                          bool isFolder = cachedItem.SourceItem.itemType == FavoriteItemType.Asset &&
+                                          bool isFolder = cachedItem.SourceItem.ItemType == FavoriteItemType.Asset &&
                                                           AssetDatabase.IsValidFolder(AssetDatabase.GetAssetPath(cachedItem.AssetObject));
 
                                           if (!isFolder)
@@ -680,7 +680,7 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
                         EditorGUIUtility.PingObject(cachedItem.AssetObject);
                   });
 
-                  if (cachedItem.SourceItem.itemType == FavoriteItemType.Asset)
+                  if (cachedItem.SourceItem.ItemType == FavoriteItemType.Asset)
                   {
                         string path = AssetDatabase.GetAssetPath(cachedItem.AssetObject);
                         menu.AddItem(new GUIContent("Show in Explorer"), false, () => EditorUtility.RevealInFinder(path));
@@ -786,8 +786,6 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Window
 
                   if (_currentList.items.Contains(newItem))
                   {
-                        Debug.LogWarning($"L'objet '{obj.name}' est déjà dans cette liste de favoris.");
-
                         return;
                   }
 

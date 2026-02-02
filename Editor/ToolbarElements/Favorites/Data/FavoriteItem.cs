@@ -16,10 +16,10 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Data
       [Serializable]
       public class FavoriteItem
       {
-            public readonly FavoriteItemType ItemType;
-            public readonly string Guid;
-            public readonly int InstanceID;
-            public readonly string ScenePath;
+            public FavoriteItemType itemType;
+            public string guid;
+            public int instanceID;
+            public string scenePath;
             public string alias;
 
             public FavoriteItem()
@@ -32,12 +32,12 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Data
 
                   if (AssetDatabase.Contains(obj))
                   {
-                        ItemType = FavoriteItemType.Asset;
-                        Guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(obj));
+                        itemType = FavoriteItemType.Asset;
+                        guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(obj));
                   }
                   else if (obj is GameObject go)
                   {
-                        ItemType = FavoriteItemType.GameObject;
+                        itemType = FavoriteItemType.GameObject;
 
                         // ! InstanceID is obsolete
                         // This is a quick fix for now just to disable warnings in 6.4 that could be annoying
@@ -45,26 +45,26 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Data
                         // TODO: Convert to EntityID
 #if UNITY_6000_3_OR_NEWER
                         #pragma warning disable CS0618
-                        InstanceID = go.GetInstanceID();
+                        instanceID = go.GetInstanceID();
                         #pragma warning restore CS0618
 #else
                         instanceID = go.GetInstanceID();
 #endif
-                        ScenePath = go.scene.path;
+                        scenePath = go.scene.path;
                   }
             }
 
             public Object GetObject()
             {
-                  switch (ItemType)
+                  switch (itemType)
                   {
                         case FavoriteItemType.Asset:
-                              return AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(Guid));
+                              return AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(guid));
                         case FavoriteItemType.GameObject:
                               // TODO: Convert to EntityID
 #if UNITY_6000_3_OR_NEWER
                               #pragma warning disable CS0618
-                              return !IsSceneLoaded() ? null : EditorUtility.EntityIdToObject(InstanceID);
+                              return !IsSceneLoaded() ? null : EditorUtility.EntityIdToObject(instanceID);
                               #pragma warning restore CS0618
 #else
                               return !IsSceneLoaded() ? null : EditorUtility.InstanceIDToObject(instanceID);
@@ -77,14 +77,14 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Data
 
             public bool IsSceneLoaded()
             {
-                  if (ItemType != FavoriteItemType.GameObject || string.IsNullOrEmpty(ScenePath))
+                  if (itemType != FavoriteItemType.GameObject || string.IsNullOrEmpty(scenePath))
                   {
                         return true;
                   }
 
                   for (int i = 0; i < SceneManager.sceneCount; i++)
                   {
-                        if (SceneManager.GetSceneAt(i).path == ScenePath)
+                        if (SceneManager.GetSceneAt(i).path == scenePath)
                         {
                               return true;
                         }
@@ -100,25 +100,25 @@ namespace OpalStudio.CustomToolbar.Editor.ToolbarElements.Favorites.Data
                         return false;
                   }
 
-                  if (ItemType != other.ItemType)
+                  if (itemType != other.itemType)
                   {
                         return false;
                   }
 
-                  return ItemType switch
+                  return itemType switch
                   {
-                        FavoriteItemType.Asset => Guid == other.Guid,
-                        FavoriteItemType.GameObject => InstanceID == other.InstanceID && ScenePath == other.ScenePath,
+                        FavoriteItemType.Asset => guid == other.guid,
+                        FavoriteItemType.GameObject => instanceID == other.instanceID && scenePath == other.scenePath,
                         _ => false
                   };
             }
 
             public override int GetHashCode()
             {
-                  return ItemType switch
+                  return itemType switch
                   {
-                        FavoriteItemType.Asset => HashCode.Combine(ItemType, Guid),
-                        FavoriteItemType.GameObject => HashCode.Combine(ItemType, InstanceID, ScenePath),
+                        FavoriteItemType.Asset => HashCode.Combine(itemType, guid),
+                        FavoriteItemType.GameObject => HashCode.Combine(itemType, instanceID, scenePath),
                         _ => base.GetHashCode()
                   };
             }
